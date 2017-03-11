@@ -1,0 +1,6 @@
+[{
+	"id": "debug",
+	"label": "Ouput debugging info in logs",
+	"type": "bool",
+	"default": "false"
+}]
