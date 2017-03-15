@@ -2,7 +2,7 @@
 import re, types, traceback
 import Queue
 
-# URLS
+# URLs
 VERSION_NO = '1.2017.03.05.1'
 AUD_BASE_URL = 'http://www.audible.com/'
 AUD_BOOK_INFO = AUD_BASE_URL + 'pd/%s'
@@ -12,7 +12,11 @@ AUD_SEARCH_URL = AUD_BASE_URL + 'search?'
 AUD_SEARCH_BOOK = '&searchTitle='
 AUD_SEARCH_AUTHOR = '&searchAuthor='
 AUD_SEARCH_TAIL = '&x=41'
+AUD_INTERNATIONAL = 'http://www.audible.com/?ipRedirectOverride=true'
 
+# International URLs
+AUD_DE = 'http://www.audible.de/?ipRedirectOverride=true'
+AUD_UK = 'http://www.audible.co.uk/?ipRedirectOverride=true
 
 REQUEST_DELAY = 0       # Delay used when requesting HTML, may be good to have to prevent being banned from the site
 
