@@ -31,6 +31,10 @@ def Start():
     HTTP.CacheTime = CACHE_1WEEK
     HTTP.Headers['User-agent'] = 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.2; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0)'
     HTTP.Headers['Accept-Encoding'] = 'gzip'
+    if Prefs['international']:
+	self.Log('International Mode Enabled')
+	cookies = HTTP.CookiesForURL(AUD_INTERNATIONAL)
+	httpCookies=cookies
 
 class AudiobookArtist(Agent.Artist):
     name = 'Audiobooks'
