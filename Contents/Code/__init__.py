@@ -16,7 +16,7 @@ AUD_INTERNATIONAL = 'http://www.audible.com/?ipRedirectOverride=true'
 
 # International URLs
 AUD_DE = 'http://www.audible.de/?ipRedirectOverride=true'
-AUD_UK = 'http://www.audible.co.uk/?ipRedirectOverride=true
+AUD_UK = 'http://www.audible.co.uk/?ipRedirectOverride=true'
 
 REQUEST_DELAY = 0       # Delay used when requesting HTML, may be good to have to prevent being banned from the site
 
@@ -31,10 +31,7 @@ def Start():
     HTTP.CacheTime = CACHE_1WEEK
     HTTP.Headers['User-agent'] = 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.2; Trident/4.0; SLCC2; .NET CLR 2.0.50727; .NET CLR 3.5.30729; .NET CLR 3.0.30729; Media Center PC 6.0)'
     HTTP.Headers['Accept-Encoding'] = 'gzip'
-    if Prefs['international']:
-	self.Log('International Mode Enabled')
-	cookies = HTTP.CookiesForURL(AUD_INTERNATIONAL)
-	httpCookies=cookies
+    
 
 class AudiobookArtist(Agent.Artist):
     name = 'Audiobooks'
@@ -150,6 +147,7 @@ class AudiobookAlbum(Agent.Album):
     accepts_from = ['com.plexapp.agents.localmedia']
 
     prev_search_provider = 0
+	
     
     def Log(self, message, *args):
         if Prefs['debug']:
@@ -187,6 +185,11 @@ class AudiobookAlbum(Agent.Album):
         return None
 
     def doSearch(self, url):
+        if Prefs['international']:
+          self.Log('International Mode Enabled')
+          cookies = HTTP.CookiesForURL(AUD_INTERNATIONAL)
+          httpCookies=cookies
+
         html = HTML.ElementFromURL(url, sleep=REQUEST_DELAY)
         found = []
         
@@ -354,7 +357,11 @@ class AudiobookAlbum(Agent.Album):
     def update(self, metadata, media, lang, force=False):
         self.Log('***** UPDATING "%s" ID: %s - AUDIBLE v.%s *****', media.title, metadata.id, VERSION_NO)
         
-		  
+        if Prefs['international']:
+          self.Log('International Mode Enabled')
+          cookies = HTTP.CookiesForURL(AUD_INTERNATIONAL)
+          httpCookies=cookies		
+		
         # Make url
         url = AUD_BOOK_INFO % metadata.id
 
