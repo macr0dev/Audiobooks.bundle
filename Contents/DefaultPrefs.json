@@ -1,5 +1,11 @@
-[{
-	"id": "debug",
+[{      "id": "international",
+	"label": "Support for outside the U.S.",
+	"type": "bool",
+	"default": "false"
+	
+	
+	
+},{	"id": "debug",
 	"label": "Ouput debugging info in logs",
 	"type": "bool",
 	"default": "false"
