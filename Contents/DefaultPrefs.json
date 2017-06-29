@@ -5,6 +5,12 @@
 	
 	
 	
+},{
+    "id"      : "site",
+    "label"   : "Select amazonsite to use",
+    "type"    : "enum",
+    "values"  : ["www.audible.com","www.audible.co.uk","www.audible.com.au","www.audible.de","www.audible.fr","www.audible.it","www.audible.co.jp"],
+    "default" : "www.audible.com"
 },{	"id": "debug",
 	"label": "Ouput debugging info in logs",
 	"type": "bool",
