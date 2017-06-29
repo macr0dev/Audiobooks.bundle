@@ -14,9 +14,9 @@ IGNORE_SCORE = 45       # Any score lower than this will be ignored.
 THREAD_MAX = 20
 
 intl_sites={
-	'fr' : { 'url': 'www.audible.fr', 'rel_date' : 'Date de publication'  , 'nar_by' : 'Narrateur(s)'  , 'nar_by2':'Lu par'},
-	'de' : { 'url': 'www.audible.de', 'rel_date' : 'Erscheinungsdatum'    , 'nar_by' : 'Gesprochen von', 'rel_date2':'Veröffentlicht'},
-	'it' : { 'url': 'www.audible.it', 'rel_date' : 'Data di Pubblicazione', 'nar_by' : 'Narratore'     },
+	'fr' : { 'url': 'www.audible.fr', 'rel_date' : u'Date de publication'  , 'nar_by' : u'Narrateur(s)'  , 'nar_by2': u'Lu par'},
+	'de' : { 'url': 'www.audible.de', 'rel_date' : u'Erscheinungsdatum'    , 'nar_by' : u'Gesprochen von', 'rel_date2': u'Veröffentlicht'},
+	'it' : { 'url': 'www.audible.it', 'rel_date' : u'Data di Pubblicazione', 'nar_by' : u'Narratore'     },
 	}
 
 def SetupUrls(base, lang='en'):
@@ -214,14 +214,14 @@ class AudiobookAlbum(Agent.Album):
         found = []
         
         for r in html.xpath('//div[contains (@class, "adbl-search-result")]'):
-            date = self.getDateFromString(self.getStringContentFromXPath(r, 'div/div/ul/li[contains (., "{0}")]/span[2]//text()'.format(ctx['REL_DATE'])))
+            date = self.getDateFromString(self.getStringContentFromXPath(r, 'div/div/ul/li[contains (., "{0}")]/span[2]//text()'.format(ctx['REL_DATE']).decode('utf-8')))
             #title = self.getStringContentFromXPath(r, 'div[contains (@class,"adbl-prod-meta-data-cont")]/div[contains (@class,"adbl-prod-title")]/a[1]')
             title = self.getStringContentFromXPath(r, 'div/div/div/div/a[1]')
             #murl = self.getAnchorUrlFromXPath(r, 'div[contains (@class,"adbl-prod-meta-data-cont")]/div[contains (@class,"adbl-prod-title")]/a[1]')
             murl = self.getAnchorUrlFromXPath(r, 'div/div/div/div/a[1]')
             thumb = self.getImageUrlFromXPath(r, 'div[contains (@class,"adbl-prod-image-sample-cont")]/a/img')
             author = self.getStringContentFromXPath(r, 'div/div/ul/li//a[contains (@class,"author-profile-link")][1]')
-            narrator = self.getStringContentFromXPath(r, 'div/div/ul/li[contains (., "{0}")]//a[1]'.format(ctx['NAR_BY']))
+            narrator = self.getStringContentFromXPath(r, 'div/div/ul/li[contains (., "{0}")]//a[1]'.format(ctx['NAR_BY']).decode('utf-8'))
             self.Log('---------------------------------------XPATH SEARCH HIT-----------------------------------------------')
             
             found.append({'url': murl, 'title': title, 'date': date, 'thumb': thumb, 'author': author, 'narrator': narrator})
@@ -390,13 +390,13 @@ class AudiobookAlbum(Agent.Album):
         html = HTML.ElementFromURL(url, sleep=REQUEST_DELAY)
         
         for r in html.xpath('//div[contains (@id, "adbl_page_content")]'):
-            date = self.getDateFromString(self.getStringContentFromXPath(r, '//li[contains (., "{0}")]/span[2]//text()'.format(ctx['REL_DATE_INFO'])))
+            date = self.getDateFromString(self.getStringContentFromXPath(r, '//li[contains (., "{0}")]/span[2]//text()'.format(ctx['REL_DATE_INFO']).decode('utf-8')))
             #title = self.getStringContentFromXPath(r, 'div[contains (@class,"adbl-prod-meta-data-cont")]/div[contains (@class,"adbl-prod-title")]/a[1]')
             title = self.getStringContentFromXPath(r, '//h1[contains (@class, "adbl-prod-h1-title")]/text()')
             murl = self.getAnchorUrlFromXPath(r, 'div/div/div/div/a[1]')
             thumb = self.getImageUrlFromXPath(r, 'div/div/div/div/div/img')
             author = self.getStringContentFromXPath(r, '//li//a[contains (@class,"author-profile-link")][1]')
-            narrator = self.getStringContentFromXPath(r, '//li[contains (., "{0}")]//span[2]'.format(ctx['NAR_BY_INFO'])).strip()
+            narrator = self.getStringContentFromXPath(r, '//li[contains (., "{0}")]//span[2]'.format(ctx['NAR_BY_INFO'])).strip().decode('utf-8')
             studio = self.getStringContentFromXPath(r, '//li//a[contains (@id,"PublisherSearchLink")][1]')
             synopsis = self.getStringContentFromXPath(r, '//div[contains (@class, "disc-summary")]/div[*]').strip()
             series = self.getStringContentFromXPath(r, '//div[contains (@class, "adbl-series-link")]//a[1]')
