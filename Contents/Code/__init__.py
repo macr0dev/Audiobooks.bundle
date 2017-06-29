@@ -5,13 +5,14 @@ import Queue
 # URLS
 VERSION_NO = '1.2017.03.05.1'
 AUD_BASE_URL = 'http://www.audible.com/'
-AUD_BOOK_INFO = AUD_BASE_URL + 'pd/%s'
-AUD_ARTIST_SEARCH_URL = AUD_BASE_URL + 'search?&searchAuthor=%s'
-AUD_ALBUM_SEARCH_URL = AUD_BASE_URL + 'search?&searchTitle=%s&x=41'
+IP_OVERRIDE = 'ipRedirectOverride=true'
+AUD_BOOK_INFO = AUD_BASE_URL + 'pd/%s' + '?' + IP_OVERRIDE
+AUD_ARTIST_SEARCH_URL = AUD_BASE_URL + 'search?&searchAuthor=%s' + '&' + IP_OVERRIDE
+AUD_ALBUM_SEARCH_URL = AUD_BASE_URL + 'search?&searchTitle=%s&x=41' + '&' + IP_OVERRIDE
 AUD_SEARCH_URL = AUD_BASE_URL + 'search?'
 AUD_SEARCH_BOOK = '&searchTitle='
 AUD_SEARCH_AUTHOR = '&searchAuthor='
-AUD_SEARCH_TAIL = '&x=41'
+AUD_SEARCH_TAIL = '&x=41' + '&' + IP_OVERRIDE
 
 
 REQUEST_DELAY = 0       # Delay used when requesting HTML, may be good to have to prevent being banned from the site
@@ -179,7 +180,7 @@ class AudiobookAlbum(Agent.Album):
         return None
 
     def doSearch(self, url):
-        html = HTML.ElementFromURL(url, sleep=REQUEST_DELAY)
+        html = HTML.ElementFromURL(url, sleep=REQUEST_DELAY, errors='ignore')
         found = []
         
         for r in html.xpath('//div[contains (@class, "adbl-search-result")]'):
