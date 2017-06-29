@@ -230,6 +230,7 @@ class AudiobookAlbum(Agent.Album):
 
     def search(self, results, media, lang, manual):
         ctx=SetupUrls(Prefs['site'], lang)
+        LCL_IGNORE_SCORE=IGNORE_SCORE
 		
         self.Log('---------------------------------------ALBUM SEARCH-----------------------------------------------')
         self.Log('* ID:              %s', media.parent_metadata.id)
@@ -276,6 +277,7 @@ class AudiobookAlbum(Agent.Album):
         match = re.search("(?P<book_title>.*?)\[(?P<source>(audible))-(?P<guid>B[a-zA-Z0-9]{9,9})\]", media.title, re.IGNORECASE)
         if match:  ###metadata id provided
           searchUrl = ctx['AUD_KEYWORD_SEARCH_URL'] % (String.Quote((match.group('guid')).encode('utf-8'), usePlus=True))
+          LCL_IGNORE_SCORE=0
         elif media.artist is not None:
           searchUrl = ctx['AUD_SEARCH_URL'].format((String.Quote((normalizedName).encode('utf-8'), usePlus=True)), (String.Quote((media.artist).encode('utf-8'), usePlus=True)))
         else:
@@ -354,10 +356,10 @@ class AudiobookAlbum(Agent.Album):
             self.Log('* Date is               %s', str(date))
             self.Log('* Score is              %s', str(score))
 
-            if score >= IGNORE_SCORE:
+            if score >= LCL_IGNORE_SCORE:
                 info.append({'id': itemId, 'title': title, 'year': year, 'date': date, 'score': score, 'thumb': thumb, 'artist' : author})
             else:
-                self.Log('# Score is below ignore boundary (%s)... Skipping!', IGNORE_SCORE)
+                self.Log('# Score is below ignore boundary (%s)... Skipping!', LCL_IGNORE_SCORE)
 
             if i != len(found):
                 self.Log('-----------------------------------------------------------------------')
