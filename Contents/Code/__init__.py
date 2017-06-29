@@ -46,6 +46,7 @@ def SetupUrls(base, lang='en'):
     ctx['AUD_BOOK_INFO'        ]=AUD_BASE_URL + 'pd/%s?ipRedirectOverride=true'
     ctx['AUD_ARTIST_SEARCH_URL']=AUD_BASE_URL + 'search?searchAuthor=%s&ipRedirectOverride=true'
     ctx['AUD_ALBUM_SEARCH_URL' ]=AUD_BASE_URL + 'search?searchTitle=%s&x=41&ipRedirectOverride=true'
+    ctx['AUD_KEYWORD_SEARCH_URL']=AUD_BASE_URL + 'search?filterby=field-keywords&advsearchKeywords=%s&x=41'
     ctx['AUD_SEARCH_URL'       ]=AUD_BASE_URL + 'search?searchTitle={0}&searchAuthor={1}&x=41&ipRedirectOverride=true'
     return ctx
 
@@ -267,11 +268,15 @@ class AudiobookAlbum(Agent.Album):
 
 		# Chop off "unabridged"
         normalizedName = re.sub(r"[\(\[].*?[\)\]]", "", normalizedName)
+        normalizedName = normalizedName.strip()
 
         self.Log('***** SEARCHING FOR "%s" - AUDIBLE v.%s *****', normalizedName, VERSION_NO)
 
         # Make the URL
-        if media.artist is not None:
+        match = re.search("(?P<book_title>.*?)\[(?P<source>(audible))-(?P<guid>B[a-zA-Z0-9]{9,9})\]", media.title, re.IGNORECASE)
+        if match:  ###metadata id provided
+          searchUrl = ctx['AUD_KEYWORD_SEARCH_URL'] % (String.Quote((match.group('guid')).encode('utf-8'), usePlus=True))
+        elif media.artist is not None:
           searchUrl = ctx['AUD_SEARCH_URL'].format((String.Quote((normalizedName).encode('utf-8'), usePlus=True)), (String.Quote((media.artist).encode('utf-8'), usePlus=True)))
         else:
           searchUrl = ctx['AUD_ALBUM_SEARCH_URL'] % (String.Quote((normalizedName).encode('utf-8'), usePlus=True))
