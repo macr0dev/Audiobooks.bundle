@@ -269,7 +269,7 @@ class AudiobookAlbum(Agent.Album):
             #    continue
 
             # Get the id
-            itemId = url.split('/', 5)[4]
+            itemId = url.split('/', 7)[6]
 
             if len(itemId) == 0:
                 continue
