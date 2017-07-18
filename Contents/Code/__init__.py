@@ -11,7 +11,7 @@ AUD_ALBUM_SEARCH_URL = AUD_BASE_URL + 'search?&searchTitle=%s&x=41'
 AUD_SEARCH_URL = AUD_BASE_URL + 'search?'
 AUD_SEARCH_BOOK = '&searchTitle='
 AUD_SEARCH_AUTHOR = '&searchAuthor='
-AUD_SEARCH_TAIL = '&x=41'
+AUD_SEARCH_TAIL = '&x=41&ipRedirectOverride=true'
 
 
 REQUEST_DELAY = 0       # Delay used when requesting HTML, may be good to have to prevent being banned from the site
