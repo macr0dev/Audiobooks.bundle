@@ -3,15 +3,15 @@ import re, types, traceback
 import Queue
 
 # URLS
-VERSION_NO = '1.2017.03.05.1'
+VERSION_NO = '1.2017.07.18.2'
 AUD_BASE_URL = 'http://www.audible.com/'
-AUD_BOOK_INFO = AUD_BASE_URL + 'pd/%s'
-AUD_ARTIST_SEARCH_URL = AUD_BASE_URL + 'search?&searchAuthor=%s'
-AUD_ALBUM_SEARCH_URL = AUD_BASE_URL + 'search?&searchTitle=%s&x=41'
+AUD_BOOK_INFO = AUD_BASE_URL + 'pd/%s?ipRedirectOverride=true'
+AUD_ARTIST_SEARCH_URL = AUD_BASE_URL + 'search?&searchAuthor=%s&ipRedirectOverride=true'
+AUD_ALBUM_SEARCH_URL = AUD_BASE_URL + 'search?&searchTitle=%s&x=41&ipRedirectOverride=true'
 AUD_SEARCH_URL = AUD_BASE_URL + 'search?'
 AUD_SEARCH_BOOK = '&searchTitle='
 AUD_SEARCH_AUTHOR = '&searchAuthor='
-AUD_SEARCH_TAIL = '&x=41'
+AUD_SEARCH_TAIL = '&x=41&ipRedirectOverride=true'
 
 
 REQUEST_DELAY = 0       # Delay used when requesting HTML, may be good to have to prevent being banned from the site
@@ -244,10 +244,7 @@ class AudiobookAlbum(Agent.Album):
         else:
           searchUrl = AUD_ALBUM_SEARCH_URL % (String.Quote((normalizedName).encode('utf-8'), usePlus=True))
         found = self.doSearch(searchUrl)
-        #found2 = media.album.lstrip('0123456789')
-        #if normalizedName != found2:
-        #    searchUrl = D18_SEARCH_URL % (String.Quote((found2).encode('utf-8'), usePlus=True))
-        #    found.extend(self.doSearch(searchUrl))
+
 
         # Write search result status to log
         if len(found) == 0:
@@ -303,13 +300,7 @@ class AudiobookAlbum(Agent.Album):
               #self.Log('scorebase3:    %s', scorebase3)
               #self.Log('scorebase4:    %s', scorebase4)
               score = INITIAL_SCORE - Util.LevenshteinDistance(scorebase3, scorebase4)
-			  
-			
-			#if metadata.originally_available_at:
-            #    scorebase1 += ' (' + metadata.originally_available_at + ')'
-            #    scorebase2 += ' (' + str(year) + ')'
 
-            #score = INITIAL_SCORE
 
             self.Log('* Title is              %s', title)
             self.Log('* Author is             %s', author)
@@ -366,16 +357,6 @@ class AudiobookAlbum(Agent.Album):
             genre1 = self.getStringContentFromXPath(r,'//div[contains(@class,"adbl-pd-breadcrumb")]/div[2]/a/span/text()')
             genre2 = self.getStringContentFromXPath(r,'//div[contains(@class,"adbl-pd-breadcrumb")]/div[3]/a/span/text()')
             self.Log('---------------------------------------XPATH SEARCH HIT-----------------------------------------------')
-			
-		# We need: 
-		# Genre Tags
-		# XXStudio
-		# XXRelease Date
-		# XXSeries Info (if Any)
-		# XXSimilar authors? (fulled from last.fm)
-		# XXSynopsis as review?
-		# XXBigger album cover
-
 		
         self.Log('date:        %s', date)
         self.Log('title:       %s', title)
