@@ -1,4 +1,14 @@
-[{
+[{  "id": "sitetype",
+	"label": "Manually Select Audible Site (if unchecked, library language is used to determine the best site)",
+	"type": "bool",
+	"default": "false"
+},{
+    "id"      : "site",
+    "label"   : "Select Audible site to use: ",
+    "type"    : "enum",
+    "values"  : ["www.audible.com","www.audible.co.uk","www.audible.com.au","www.audible.de","www.audible.fr","www.audible.it"],
+    "default" : "www.audible.com"
+},{
 	"id": "debug",
 	"label": "Ouput debugging info in logs",
 	"type": "bool",
