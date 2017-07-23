@@ -9,7 +9,7 @@ Download: https://github.com/macr0dev/Audiobooks.bundle/archive/master.zip
 Source: https://github.com/macr0dev/Audiobooks.bundle
 
 
-Metadata supplied:
+**Metadata supplied:**
 
 Full Title
 Author (as Artist)
@@ -22,7 +22,7 @@ Narrator(s) (as Genre Tag)
 Genres (as Genre Tag)
 
 
-Library Creation Options:
+**Library Creation Options:**
 
 Create a BASIC MUSIC LIBRARY (not a premium Plex muisc library)
 
@@ -32,7 +32,8 @@ DO check 'Store Track Progress'
 
 Agent - Select Audiobooks
 
-Agent Congiration Options:
+
+**Agent Congiration Options:**
 
 If you're in the US and want to scrape from Audible.com - you're all set!
 If you're NOT in the US, or just want more flexibility with your searches you have options.
@@ -44,7 +45,7 @@ Manually Select Audible Site:
 Select Audible site to use:
   This option is ignored if the above box is not checked.
 
-Tips for greatest success:
+**Tips for greatest success:**
 
 Set "Album" tag in audio file as the book title
 Set "Artist" tag in audio file as the book author
@@ -53,7 +54,7 @@ Manual 'match' will use the Author/Artist field if it's present, but you cannot 
 Make sure all the tracks have the same artist and album.
 Store each in a folder
 
-Notes:
+**Notes:**
 
 -Title data in parens ()  such as (Unabridged) is automatically removed before search.  I've found this improves the results and matching.
 
