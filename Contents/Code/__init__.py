@@ -1,18 +1,10 @@
 # Audiobooks (Audible)
+# coding: utf-8
 import re, types, traceback
 import Queue
 
-# URLS
-VERSION_NO = '1.2017.07.22.2'
-AUD_BASE_URL = 'http://www.audible.com/'
-AUD_BOOK_INFO = AUD_BASE_URL + 'pd/%s?ipRedirectOverride=true'
-AUD_ARTIST_SEARCH_URL = AUD_BASE_URL + 'search?&searchAuthor=%s&ipRedirectOverride=true'
-AUD_ALBUM_SEARCH_URL = AUD_BASE_URL + 'search?&searchTitle=%s&x=41&ipRedirectOverride=true'
-AUD_SEARCH_URL = AUD_BASE_URL + 'search?'
-AUD_SEARCH_BOOK = '&searchTitle='
-AUD_SEARCH_AUTHOR = '&searchAuthor='
-AUD_SEARCH_TAIL = '&x=41&ipRedirectOverride=true'
-
+# URLs
+VERSION_NO = '1.2017.07.23.1'
 
 REQUEST_DELAY = 0       # Delay used when requesting HTML, may be good to have to prevent being banned from the site
 
@@ -22,6 +14,88 @@ IGNORE_SCORE = 45       # Any score lower than this will be ignored.
 
 THREAD_MAX = 20
 
+intl_sites={
+    'fr' : { 'url': 'www.audible.fr'   , 'rel_date' : u'Date de publication'  , 'nar_by' : u'Narrateur(s)'  , 'nar_by2': u'Lu par'},
+    'de' : { 'url': 'www.audible.de'   , 'rel_date' : u'Erscheinungsdatum'    , 'nar_by' : u'Gesprochen von', 'rel_date2': u'Veröffentlicht'},
+    'it' : { 'url': 'www.audible.it'   , 'rel_date' : u'Data di Pubblicazione', 'nar_by' : u'Narratore'     },
+    #'jp' : { 'url': 'www.audible.co.jp', 'rel_date' : u'N/A', 'nar_by' : u'ナレーター'     }, # untested
+    }
+
+sites_langs={
+    'www.audible.com' : { 'lang' : 'en' },	
+    'www.audible.co.uk' : { 'lang' : 'en' },	
+    'www.audible.com.au' : { 'lang' : 'en' },	
+    'www.audible.fr' : { 'lang' : 'fr' },	
+    'www.audible.de' : { 'lang' : 'de' },	
+    'www.audible.it' : { 'lang' : 'it' },	
+    }
+
+def SetupUrls(sitetype, base, lang='en'):
+    Log('Library/Search language is : %s', lang)
+    ctx=dict()
+    if sitetype:
+      Log('Manual Site Selection Enabled : %s', base)
+      Log('Language being ignored due to manual site selection')
+      if base in sites_langs :
+        Log('Pulling language from sites array')
+        lang=sites_langs[base]['lang']
+        if lang in intl_sites :
+          base=intl_sites[lang]['url']
+          ctx['REL_DATE']=intl_sites[lang]['rel_date']
+          ctx['NAR_BY'  ]=intl_sites[lang]['nar_by']
+          if 'rel_date2' in intl_sites[lang]:
+              ctx['REL_DATE_INFO']=intl_sites[lang]['rel_date2']
+          else:
+              ctx['REL_DATE_INFO']=ctx['REL_DATE']
+          if 'nar_by2' in intl_sites[lang]:
+              ctx['NAR_BY_INFO' ]=intl_sites[lang]['nar_by2']
+          else:
+              ctx['NAR_BY_INFO' ]=ctx['NAR_BY'  ]
+        else:
+          ctx['REL_DATE'     ]='Release Date'
+          ctx['REL_DATE_INFO']=ctx['REL_DATE']
+          ctx['NAR_BY'       ]='Narrated By'
+          ctx['NAR_BY_INFO'  ]='Narrated by'		        
+      Log('Sites language is : %s', lang)
+      Log('/******************************LANG DEBUGGING************************************/')
+      Log('/* REL_DATE = %s', ctx['REL_DATE'])
+      Log('/* REL_DATE_INFO = %s', ctx['REL_DATE_INFO'])
+      Log('/* NAR_BY = %s', ctx['NAR_BY'])
+      Log('/* NAR_BY_INFO = %s', ctx['NAR_BY_INFO'])
+      Log('/********************************************************************************/')
+    else:
+      Log('Audible site will be chosen by library language')
+      Log('Library Language is %s', lang)
+      if base is None:
+          base='www.audible.com'
+      if lang in intl_sites :
+        base=intl_sites[lang]['url']
+        ctx['REL_DATE']=intl_sites[lang]['rel_date']
+        ctx['NAR_BY'  ]=intl_sites[lang]['nar_by']
+        if 'rel_date2' in intl_sites[lang]:
+            ctx['REL_DATE_INFO']=intl_sites[lang]['rel_date2']
+        else:
+            ctx['REL_DATE_INFO']=ctx['REL_DATE']
+        if 'nar_by2' in intl_sites[lang]:
+            ctx['NAR_BY_INFO' ]=intl_sites[lang]['nar_by2']
+        else:
+            ctx['NAR_BY_INFO' ]=ctx['NAR_BY'  ]
+      else:
+        ctx['REL_DATE'     ]='Release Date'
+        ctx['REL_DATE_INFO']=ctx['REL_DATE']
+        ctx['NAR_BY'       ]='Narrated By'
+        ctx['NAR_BY_INFO'  ]='Narrated by'
+
+    
+    AUD_BASE_URL='http://' + base + '/'
+    ctx['AUD_BOOK_INFO'         ]=AUD_BASE_URL + 'pd/%s?ipRedirectOverride=true'
+    ctx['AUD_ARTIST_SEARCH_URL' ]=AUD_BASE_URL + 'search?searchAuthor=%s&ipRedirectOverride=true'
+    ctx['AUD_ALBUM_SEARCH_URL'  ]=AUD_BASE_URL + 'search?searchTitle=%s&x=41&ipRedirectOverride=true'
+    ctx['AUD_KEYWORD_SEARCH_URL']=AUD_BASE_URL + 'search?filterby=field-keywords&advsearchKeywords=%s&x=41&ipRedirectOverride=true'
+    ctx['AUD_SEARCH_URL'        ]=AUD_BASE_URL + 'search?searchTitle={0}&searchAuthor={1}&x=41&ipRedirectOverride=true'
+    return ctx
+
+
 def Start():
     #HTTP.ClearCache()
     HTTP.CacheTime = CACHE_1WEEK
@@ -30,7 +104,7 @@ def Start():
 
 class AudiobookArtist(Agent.Artist):
     name = 'Audiobooks'
-    languages = [Locale.Language.NoLanguage]
+    languages = [Locale.Language.English, 'de', 'fr', 'it']
     primary_provider = True
     accepts_from = ['com.plexapp.agents.localmedia']
 
@@ -72,7 +146,7 @@ class AudiobookArtist(Agent.Artist):
             return Datetime.ParseDate(result.group(0)).date()
         return None
 
-    def doSearch(self, url):
+    def doSearch(self, url, ctx):
 	
 	  
 		
@@ -130,7 +204,7 @@ class AudiobookArtist(Agent.Artist):
 
 class AudiobookAlbum(Agent.Album):
     name = 'Audiobooks'
-    languages = [Locale.Language.NoLanguage]
+    languages = [Locale.Language.English, 'de', 'fr', 'it']
     primary_provider = True
     accepts_from = ['com.plexapp.agents.localmedia']
 
@@ -171,19 +245,17 @@ class AudiobookAlbum(Agent.Album):
             return Datetime.ParseDate(result.group(0)).date()
         return None
 
-    def doSearch(self, url):
+    def doSearch(self, url, ctx):
         html = HTML.ElementFromURL(url, sleep=REQUEST_DELAY)
         found = []
         
         for r in html.xpath('//div[contains (@class, "adbl-search-result")]'):
-            date = self.getDateFromString(self.getStringContentFromXPath(r, 'div/div/ul/li[contains (., "Release Date")]/span[2]//text()'))
-            #title = self.getStringContentFromXPath(r, 'div[contains (@class,"adbl-prod-meta-data-cont")]/div[contains (@class,"adbl-prod-title")]/a[1]')
+            date = self.getDateFromString(self.getStringContentFromXPath(r, 'div/div/ul/li[contains (., "{0}")]/span[2]//text()'.format(ctx['REL_DATE']).decode('utf-8')))
             title = self.getStringContentFromXPath(r, 'div/div/div/div/a[1]')
-            #murl = self.getAnchorUrlFromXPath(r, 'div[contains (@class,"adbl-prod-meta-data-cont")]/div[contains (@class,"adbl-prod-title")]/a[1]')
             murl = self.getAnchorUrlFromXPath(r, 'div/div/div/div/a[1]')
             thumb = self.getImageUrlFromXPath(r, 'div[contains (@class,"adbl-prod-image-sample-cont")]/a/img')
             author = self.getStringContentFromXPath(r, 'div/div/ul/li//a[contains (@class,"author-profile-link")][1]')
-            narrator = self.getStringContentFromXPath(r, 'div/div/ul/li[contains (., "Narrated By")]//a[1]')
+            narrator = self.getStringContentFromXPath(r, 'div/div/ul/li[contains (., "{0}")]//a[1]'.format(ctx['NAR_BY']).decode('utf-8'))
             self.Log('---------------------------------------XPATH SEARCH HIT-----------------------------------------------')
             
             found.append({'url': murl, 'title': title, 'date': date, 'thumb': thumb, 'author': author, 'narrator': narrator})
@@ -191,6 +263,9 @@ class AudiobookAlbum(Agent.Album):
         return found
 
     def search(self, results, media, lang, manual):
+        ctx=SetupUrls(Prefs['sitetype'], Prefs['site'], lang)
+        LCL_IGNORE_SCORE=IGNORE_SCORE
+        
         self.Log('---------------------------------------ALBUM SEARCH-----------------------------------------------')
         self.Log('* ID:              %s', media.parent_metadata.id)
         self.Log('* Title:           %s', media.title)
@@ -208,8 +283,9 @@ class AudiobookAlbum(Agent.Album):
           return	
 	    
         if manual:
-          Log('You clicked \'fix match\'. This likely returned no useful results because it\'s searching using the title of the first track.')
+          Log('You clicked \'fix match\'. This may have returned no useful results because it\'s searching using the title of the first track.')
           Log('There\'s not currently a way around this initial failure. But clicking \'Search Options\' and entering the title works just fine.')
+          Log('This message will appear during the initial search and the actual manual search.')
           # If this is a custom search, use the user-entered name instead of the scanner hint.
           Log('Custom album search for: ' + media.name)
           #media.title = media.name
@@ -229,19 +305,27 @@ class AudiobookAlbum(Agent.Album):
         normalizedName = String.StripDiacritics(media.album)
         if len(normalizedName) == 0:
             normalizedName = media.album
+        Log('normalizedName = %s', normalizedName)
 
 		# Chop off "unabridged"
         normalizedName = re.sub(r"[\(\[].*?[\)\]]", "", normalizedName)
+        Log('chopping bracketed text = %s', normalizedName)
+        normalizedName = normalizedName.strip()
+        Log('normalizedName stripped = %s', normalizedName)
 
         self.Log('***** SEARCHING FOR "%s" - AUDIBLE v.%s *****', normalizedName, VERSION_NO)
 
         # Make the URL
-        if media.artist is not None:
-          searchUrl = AUD_SEARCH_URL + AUD_SEARCH_BOOK + (String.Quote((normalizedName).encode('utf-8'), usePlus=True))	+ AUD_SEARCH_AUTHOR + (String.Quote((media.artist).encode('utf-8'), usePlus=True)) + AUD_SEARCH_TAIL
+        match = re.search("(?P<book_title>.*?)\[(?P<source>(audible))-(?P<guid>B[a-zA-Z0-9]{9,9})\]", media.title, re.IGNORECASE)
+        if match:  ###metadata id provided
+          Log('Looks like you went through the trouble of adding the audible ID to the Book title...')
+          searchUrl = ctx['AUD_KEYWORD_SEARCH_URL'] % (String.Quote((match.group('guid')).encode('utf-8'), usePlus=True))
+          LCL_IGNORE_SCORE=0
+        elif media.artist is not None:
+          searchUrl = ctx['AUD_SEARCH_URL'].format((String.Quote((normalizedName).encode('utf-8'), usePlus=True)), (String.Quote((media.artist).encode('utf-8'), usePlus=True)))
         else:
-          searchUrl = AUD_ALBUM_SEARCH_URL % (String.Quote((normalizedName).encode('utf-8'), usePlus=True))
-        found = self.doSearch(searchUrl)
-
+          searchUrl = ctx['AUD_ALBUM_SEARCH_URL'] % (String.Quote((normalizedName).encode('utf-8'), usePlus=True))
+        found = self.doSearch(searchUrl, ctx)
 
         # Write search result status to log
         if len(found) == 0:
@@ -261,9 +345,6 @@ class AudiobookAlbum(Agent.Album):
         for f in found:
             url = f['url']
             self.Log('URL For Breakdown: %s', url)
-            #if re.search(r'http://www\.audible\.com', url) is None:
-            #    self.Log('re.search is None')
-            #    continue
 
             # Get the id
             itemId = url.split('/', 7)[6]
@@ -306,10 +387,10 @@ class AudiobookAlbum(Agent.Album):
             self.Log('* Score is              %s', str(score))
             self.Log('* Thumb is              %s', thumb)
 
-            if score >= IGNORE_SCORE:
+            if score >= LCL_IGNORE_SCORE:
                 info.append({'id': itemId, 'title': title, 'year': year, 'date': date, 'score': score, 'thumb': thumb, 'artist' : author})
             else:
-                self.Log('# Score is below ignore boundary (%s)... Skipping!', IGNORE_SCORE)
+                self.Log('# Score is below ignore boundary (%s)... Skipping!', LCL_IGNORE_SCORE)
 
             if i != len(found):
                 self.Log('-----------------------------------------------------------------------')
@@ -334,21 +415,20 @@ class AudiobookAlbum(Agent.Album):
 
     def update(self, metadata, media, lang, force=False):
         self.Log('***** UPDATING "%s" ID: %s - AUDIBLE v.%s *****', media.title, metadata.id, VERSION_NO)
-        
+        ctx=SetupUrls(Prefs['sitetype'], Prefs['site'], lang)
 		  
         # Make url
-        url = AUD_BOOK_INFO % metadata.id
+        url = ctx['AUD_BOOK_INFO'] % metadata.id
 
         html = HTML.ElementFromURL(url, sleep=REQUEST_DELAY)
         
         for r in html.xpath('//div[contains (@id, "adbl_page_content")]'):
-            date = self.getDateFromString(self.getStringContentFromXPath(r, '//li[contains (., "Release Date")]/span[2]//text()'))
-            #title = self.getStringContentFromXPath(r, 'div[contains (@class,"adbl-prod-meta-data-cont")]/div[contains (@class,"adbl-prod-title")]/a[1]')
+            date = self.getDateFromString(self.getStringContentFromXPath(r, '//li[contains (., "{0}")]/span[2]//text()'.format(ctx['REL_DATE_INFO']).decode('utf-8')))
             title = self.getStringContentFromXPath(r, '//h1[contains (@class, "adbl-prod-h1-title")]/text()')
             murl = self.getAnchorUrlFromXPath(r, 'div/div/div/div/a[1]')
             thumb = self.getImageUrlFromXPath(r, 'div/div/div/div/div/img')
             author = self.getStringContentFromXPath(r, '//li//a[contains (@class,"author-profile-link")][1]')
-            narrator = self.getStringContentFromXPath(r, '//li[contains (., "Narrated by")]//span[2]').strip()
+            narrator = self.getStringContentFromXPath(r, '//li[contains (., "{0}")]//span[2]'.format(ctx['NAR_BY_INFO'])).strip().decode('utf-8')
             studio = self.getStringContentFromXPath(r, '//li//a[contains (@id,"PublisherSearchLink")][1]')
             synopsis = self.getStringContentFromXPath(r, '//div[contains (@class, "disc-summary")]/div[*]').strip()
             series = self.getStringContentFromXPath(r, '//div[contains (@class, "adbl-series-link")]//a[1]')
