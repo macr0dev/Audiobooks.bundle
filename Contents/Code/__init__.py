@@ -127,13 +127,6 @@ class AudiobookArtist(Agent.Artist):
     def addTask(self, queue, func, *args, **kargs):
         queue.put((func, args, kargs))
 
-   
-
-
-    
-
-
-    
 
 class AudiobookAlbum(Agent.Album):
     name = 'Audiobooks'
@@ -375,7 +368,9 @@ class AudiobookAlbum(Agent.Album):
 		# Add the genres
         metadata.genres.clear()
         metadata.genres.add(series)
-        metadata.genres.add(narrator)
+        narrators_list = narrator.split(",")
+        for narrators in narrators_list:
+            metadata.genres.add(narrators)
         metadata.genres.add(genre1)
         metadata.genres.add(genre2)
 		
