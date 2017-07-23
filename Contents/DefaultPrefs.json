@@ -1,7 +1,7 @@
 [{  "id": "sitetype",
 	"label": "Manually Select Audible Site (if unchecked, library language is used to determine the best site)",
 	"type": "bool",
-	"default": "false"
+	"default": "true"
 },{
     "id"      : "site",
     "label"   : "Select Audible site to use: ",
