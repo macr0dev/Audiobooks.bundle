@@ -199,16 +199,20 @@ class AudiobookAlbum(Agent.Album):
         self.Log('* Artist:          %s', media.artist)
         self.Log('--------------------------------------------------------------------------------------------------')	
 	
-	    # Handle a couple of edge cases where album search will give bad results.
+        # Handle a couple of edge cases where album search will give bad results.
         if media.album is None and not manual:
+          self.Log('Album Title is NULL on an automatic search.  Returning')
           return	  
         if media.album == '[Unknown Album]' and not manual:
+          self.Log('Album Title is [Unknown Album] on an automatic search.  Returning')
           return	
 	    
         if manual:
+          Log('You clicked \'fix match\'. This likely returned no useful results because it\'s searching using the title of the first track.')
+          Log('There\'s not currently a way around this initial failure. But clicking \'Search Options\' and entering the title works just fine.')
           # If this is a custom search, use the user-entered name instead of the scanner hint.
           Log('Custom album search for: ' + media.name)
-          media.title = media.name
+          #media.title = media.name
           media.album = media.name
         else:
           Log('Album search: ' + media.title)
@@ -300,6 +304,7 @@ class AudiobookAlbum(Agent.Album):
             self.Log('* Narrator is           %s', narrator)
             self.Log('* Date is               %s', str(date))
             self.Log('* Score is              %s', str(score))
+            self.Log('* Thumb is              %s', thumb)
 
             if score >= IGNORE_SCORE:
                 info.append({'id': itemId, 'title': title, 'year': year, 'date': date, 'score': score, 'thumb': thumb, 'artist' : author})
