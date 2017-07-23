@@ -3,7 +3,7 @@ import re, types, traceback
 import Queue
 
 # URLS
-VERSION_NO = '1.2017.07.18.2'
+VERSION_NO = '1.2017.07.22.1'
 AUD_BASE_URL = 'http://www.audible.com/'
 AUD_BOOK_INFO = AUD_BASE_URL + 'pd/%s?ipRedirectOverride=true'
 AUD_ARTIST_SEARCH_URL = AUD_BASE_URL + 'search?&searchAuthor=%s&ipRedirectOverride=true'
