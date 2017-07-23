@@ -1,29 +1,47 @@
 # Audiobooks (Audible) metadata agent
 
-This metadata agent will receive data from [Audible.com](http://www.www.audible.com/).
+Metadata agent for Audiobooks stored in a music library. Now available in the Unsupported App Store!
 
-I've discovered that the first two genre tags show up in the top right when viewing the album/book.  If the book is identified as part of a series, it will list there and when clicked display other books of that series.  The same goes for the Narrator.
+This agent scrapes from Audible.com. It uses the Album Artist as the books Author and uses the Album Title as the Book Title. All audio files will need to be tagged correctly in order for this thing to do it's job. You can manually search for each book if you don't have them tagged ahead of time. 
+
+Download: https://github.com/macr0dev/Audiobooks.bundle/archive/master.zip
+Source: https://github.com/macr0dev/Audiobooks.bundle
 
 
 Metadata supplied:
 
 Full Title
-Audthor (as Artist)
+Author (as Artist)
 Book/Album Cover (as Poster)
 Release Date (audiobook, not print or e-book)
 Production Studio (as Record Label)
 Publisher's Summary (as Review)
+Series Title (if exists)
 Narrator(s) (as Genre Tag)
-Genres (as Genre Tag, duh)
+Genres (as Genre Tag)
 
 
 Library Creation Options:
+
+Create a BASIC MUSIC LIBRARY (not a premium Plex muisc library)
+
 DO NOT check 'Use Embedded Tags'
 
 DO check 'Store Track Progress'
 
 Agent - Select Audiobooks
 
+Agent Congiration Options:
+
+If you're in the US and want to scrape from Audible.com - you're all set!
+If you're NOT in the US, or just want more flexibility with your searches you have options.
+
+Manually Select Audible Site:
+  This option allows you to manually select which site you're going to scrape.  If this is not checked, the language you selected for
+  the library, or the language selected for a manual match will be used to select which site to scrape from.
+
+Select Audible site to use:
+  This option is ignored if the above box is not checked.
 
 Tips for greatest success:
 
@@ -36,16 +54,10 @@ Store each in a folder
 
 Notes:
 
-Title data in parens ()  such as (Unabridged) is automatically removed before search.  I've found this improves the results and matching.
+-Title data in parens ()  such as (Unabridged) is automatically removed before search.  I've found this improves the results and matching.
 
+-Currently, I don't have a great source for author data. What populates now (if any) is being done automatically from last.fm. You're welcome to go add some data there. This was kind of a happy accident.
 
+-The first two genre tags show up in the top right when viewing the album/book.  Genre tags are listed in the following order: Series [if exists], Narrator(s), Genre.
 
-Todo:
-
--Author Data
-Not sure what to do about author data.  I don't know of a good site to scrape for author data.  In the absense of my script providing this, plex seems to automatically search Last.fm using it's internal plugin.  Some authors are listed there and it pulls data much like it does for a music artist.  For now I suggest contributing to that wiki style page to help populate data until Audible comes up with an artist detail page.
-
-
--Genre Tags
-The only tags you can filter by in Music library's are the artist tags.  So while I'm populating the album genres, it's just there to be pretty and look complete.  Maybe in a future release this will become useful data.
-
+-You can filter by the various tags that are added to each book. Be it author, series, narrator, etc.
