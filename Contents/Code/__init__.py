@@ -4,7 +4,7 @@ import re, types, traceback
 import Queue
 
 # URLs
-VERSION_NO = '1.2017.09.26.1'
+VERSION_NO = '1.2017.09.26.2'
 
 REQUEST_DELAY = 0       # Delay used when requesting HTML, may be good to have to prevent being banned from the site
 
@@ -347,18 +347,22 @@ class AudiobookAlbum(Agent.Album):
             self.Log('URL For Breakdown: %s', url)
 
             # Get the id
-            itemId = url.split('/', 7)[4]
+            for itemId in url.split('/') :
+                if re.match(r'B0[0-9A-Z]{8,8}', itemId):
+                    break
+                itemId=None
 
             if len(itemId) == 0:
+                Log('No Match: %s', url)
                 continue
 
             self.Log('* ID is                 %s', itemId)
 
-            title = f['title']
-            thumb = f['thumb']
-            date = f['date']
-            year = ''
-            author = f['author']
+            title    = f['title']
+            thumb    = f['thumb']
+            date     = f['date']
+            year     = ''
+            author   = f['author']
             narrator = f['narrator']
 
             if date is not None:
