@@ -4,7 +4,7 @@ import re, types, traceback
 import Queue
 
 # URLs
-VERSION_NO = '1.2017.07.23.1'
+VERSION_NO = '1.2017.09.26.1'
 
 REQUEST_DELAY = 0       # Delay used when requesting HTML, may be good to have to prevent being banned from the site
 
