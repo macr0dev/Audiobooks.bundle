@@ -347,7 +347,7 @@ class AudiobookAlbum(Agent.Album):
             self.Log('URL For Breakdown: %s', url)
 
             # Get the id
-            itemId = url.split('/', 7)[6]
+            itemId = url.split('/', 7)[4]
 
             if len(itemId) == 0:
                 continue
