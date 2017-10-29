@@ -509,6 +509,7 @@ class AudiobookAlbum(Agent.Album):
         synopsis = synopsis.replace("</u>", "")
         synopsis = synopsis.replace("<b>", "")
         synopsis = synopsis.replace("</b>", "")
+        synopsis = synopsis.replace("<br />", "")
         synopsis = synopsis.replace("<p>", "")
         synopsis = synopsis.replace("</p>", "\n")
 		
