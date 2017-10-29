@@ -1,10 +1,26 @@
 # Audiobooks (Audible)
 # coding: utf-8
 import re, types, traceback
+import urllib
 import Queue
+import json
+
+#from mutagen import File
+#from mutagen.mp4 import MP4
+#from mutagen.id3 import ID3
+#from mutagen.flac import FLAC
+#from mutagen.flac import Picture
+#from mutagen.oggvorbis import OggVorbis
+
+def json_decode(output):
+  try:
+    return json.loads(output)
+  except:
+    return None
+
 
 # URLs
-VERSION_NO = '1.2017.09.26.2'
+VERSION_NO = '1.2017.10.29.1'
 
 REQUEST_DELAY = 0       # Delay used when requesting HTML, may be good to have to prevent being banned from the site
 
@@ -15,6 +31,7 @@ IGNORE_SCORE = 45       # Any score lower than this will be ignored.
 THREAD_MAX = 20
 
 intl_sites={
+    'en' : { 'url': 'www.audible.com'  , 'rel_date' : u'Release Date'         , 'nar_by' : u'Narrated By'   , 'nar_by2': u'Narrated by'},
     'fr' : { 'url': 'www.audible.fr'   , 'rel_date' : u'Date de publication'  , 'nar_by' : u'Narrateur(s)'  , 'nar_by2': u'Lu par'},
     'de' : { 'url': 'www.audible.de'   , 'rel_date' : u'Erscheinungsdatum'    , 'nar_by' : u'Gesprochen von', 'rel_date2': u'Veröffentlicht'},
     'it' : { 'url': 'www.audible.it'   , 'rel_date' : u'Data di Pubblicazione', 'nar_by' : u'Narratore'     },
@@ -86,8 +103,8 @@ def SetupUrls(sitetype, base, lang='en'):
         ctx['NAR_BY'       ]='Narrated By'
         ctx['NAR_BY_INFO'  ]='Narrated by'
 
-    
-    AUD_BASE_URL='https://' + base + '/'
+
+    AUD_BASE_URL='https://' + str(base) + '/'
     ctx['AUD_BOOK_INFO'         ]=AUD_BASE_URL + 'pd/%s?ipRedirectOverride=true'
     ctx['AUD_ARTIST_SEARCH_URL' ]=AUD_BASE_URL + 'search?searchAuthor=%s&ipRedirectOverride=true'
     ctx['AUD_ALBUM_SEARCH_URL'  ]=AUD_BASE_URL + 'search?searchTitle=%s&x=41&ipRedirectOverride=true'
@@ -424,8 +441,16 @@ class AudiobookAlbum(Agent.Album):
         # Make url
         url = ctx['AUD_BOOK_INFO'] % metadata.id
 
-        html = HTML.ElementFromURL(url, sleep=REQUEST_DELAY)
+        try:
+            html = HTML.ElementFromURL(url, sleep=REQUEST_DELAY)
+        except NetworkError:
+            pass
         
+        date=None
+        series=''
+        genre1=None
+        genre2=None
+		
         for r in html.xpath('//div[contains (@id, "adbl_page_content")]'):
             date = self.getDateFromString(self.getStringContentFromXPath(r, '//li[contains (., "{0}")]/span[2]//text()'.format(ctx['REL_DATE_INFO']).decode('utf-8')))
             title = self.getStringContentFromXPath(r, '//h1[contains (@class, "adbl-prod-h1-title")]/text()')
@@ -439,6 +464,54 @@ class AudiobookAlbum(Agent.Album):
             genre1 = self.getStringContentFromXPath(r,'//div[contains(@class,"adbl-pd-breadcrumb")]/div[2]/a/span/text()')
             genre2 = self.getStringContentFromXPath(r,'//div[contains(@class,"adbl-pd-breadcrumb")]/div[3]/a/span/text()')
             self.Log('---------------------------------------XPATH SEARCH HIT-----------------------------------------------')
+		
+        if date is None :
+            for r in html.xpath('//script[contains (@type, "application/ld+json")]'):
+                json_data=json_decode(r.text_content())
+                for json_data in json_data:
+                    if 'datePublished' in json_data:
+                        #for key in json_data:
+                        #    Log('{0}:{1}'.format(key, json_data[key]))
+                        date=self.getDateFromString(json_data['datePublished'])
+                        title=json_data['name']
+                        thumb=json_data['image']
+                        author=''
+                        counter=0
+                        for c in json_data['author'] :
+                            counter+=1
+                            if counter > 1 :  
+                                author+=', '
+                            author+=c['name']
+                        narrator=''
+                        counter=0
+                        for c in json_data['readBy'] :
+                            counter+=1
+                            if counter > 1 :  
+                                narrator+=','
+                            narrator+=c['name']
+                        studio=json_data['publisher']
+                        synopsis=json_data['description']
+                    if 'itemListElement' in json_data:
+                        #for key in json_data:
+                        #    Log('{0}:{1}'.format(key, json_data[key]))
+                        genre1=json_data['itemListElement'][1]['item']['name']
+                        genre2=json_data['itemListElement'][2]['item']['name']
+            
+            for r in html.xpath('//li[contains (@class, "seriesLabel")]'):
+                series = self.getStringContentFromXPath(r, '//li[contains (@class, "seriesLabel")]//a[1]')
+                #Log(series.strip())
+        
+		
+        #cleanup synopsis
+        synopsis = synopsis.replace("<i>", "")
+        synopsis = synopsis.replace("</i>", "")
+        synopsis = synopsis.replace("<u>", "")
+        synopsis = synopsis.replace("</u>", "")
+        synopsis = synopsis.replace("<b>", "")
+        synopsis = synopsis.replace("</b>", "")
+        synopsis = synopsis.replace("<p>", "")
+        synopsis = synopsis.replace("</p>", "\n")
+		
 		
         self.Log('date:        %s', date)
         self.Log('title:       %s', title)
