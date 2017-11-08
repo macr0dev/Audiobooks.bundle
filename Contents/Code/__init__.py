@@ -467,7 +467,9 @@ class AudiobookAlbum(Agent.Album):
 		
         if date is None :
             for r in html.xpath('//script[contains (@type, "application/ld+json")]'):
-                json_data=json_decode(r.text_content())
+                page_content = r.text_content()
+                page_content = page_content.replace('\\', '')
+                json_data=json_decode(page_content)
                 for json_data in json_data:
                     if 'datePublished' in json_data:
                         #for key in json_data:
