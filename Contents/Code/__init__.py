@@ -20,7 +20,7 @@ def json_decode(output):
 
 
 # URLs
-VERSION_NO = '1.2017.10.29.1'
+VERSION_NO = '1.2017.11.08.1'
 
 REQUEST_DELAY = 0       # Delay used when requesting HTML, may be good to have to prevent being banned from the site
 
