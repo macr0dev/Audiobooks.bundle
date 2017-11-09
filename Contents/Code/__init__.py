@@ -469,7 +469,8 @@ class AudiobookAlbum(Agent.Album):
             for r in html.xpath('//script[contains (@type, "application/ld+json")]'):
                 page_content = r.text_content()
                 page_content = page_content.replace('\n', '')
-                page_content = page_content.replace('\\', '\\\\')
+                page_content = page_content.replace('\)', ')') #remove an esacpe from a one-off book
+                #page_content = page_content.replace('\\', '\\\\')
                 json_data=json_decode(page_content)
                 for json_data in json_data:
                     if 'datePublished' in json_data:
