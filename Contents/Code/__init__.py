@@ -478,6 +478,7 @@ class AudiobookAlbum(Agent.Album):
                         date=self.getDateFromString(json_data['datePublished'])
                         title=json_data['name']
                         thumb=json_data['image']
+                        rating=json_data['aggregateRating']['ratingValue']
                         author=''
                         counter=0
                         for c in json_data['author'] :
@@ -524,6 +525,7 @@ class AudiobookAlbum(Agent.Album):
         self.Log('narrator:    %s', narrator)
         self.Log('studio:      %s', studio)
         self.Log('thumb:       %s', thumb)
+        self.Log('rating:      %s', rating)
         self.Log('genres:      %s, %s', genre1, genre2)
         self.Log('synopsis:    %s', synopsis)
 		
@@ -546,6 +548,7 @@ class AudiobookAlbum(Agent.Album):
         metadata.summary = synopsis
         metadata.posters[1] = Proxy.Media(HTTP.Request(thumb))
         metadata.posters.validate_keys(thumb)
+        metadata.rating = float(rating) * 2
 
         metadata.title = title
         media.artist = author
