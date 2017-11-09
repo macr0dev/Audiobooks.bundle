@@ -20,7 +20,7 @@ def json_decode(output):
 
 
 # URLs
-VERSION_NO = '1.2017.11.08.1'
+VERSION_NO = '1.2017.11.08.2'
 
 REQUEST_DELAY = 0       # Delay used when requesting HTML, may be good to have to prevent being banned from the site
 
@@ -468,7 +468,8 @@ class AudiobookAlbum(Agent.Album):
         if date is None :
             for r in html.xpath('//script[contains (@type, "application/ld+json")]'):
                 page_content = r.text_content()
-                page_content = page_content.replace('\\', '')
+                page_content = page_content.replace('\n', '')
+                page_content = page_content.replace('\\', '\\\\')
                 json_data=json_decode(page_content)
                 for json_data in json_data:
                     if 'datePublished' in json_data:
