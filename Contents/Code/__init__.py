@@ -20,7 +20,7 @@ def json_decode(output):
 
 
 # URLs
-VERSION_NO = '1.2017.11.08.2'
+VERSION_NO = '1.2017.11.09.5'
 
 REQUEST_DELAY = 0       # Delay used when requesting HTML, may be good to have to prevent being banned from the site
 
@@ -468,9 +468,8 @@ class AudiobookAlbum(Agent.Album):
         if date is None :
             for r in html.xpath('//script[contains (@type, "application/ld+json")]'):
                 page_content = r.text_content()
-                page_content = page_content.replace('\n', '')
-                page_content = page_content.replace('\)', ')') #remove an esacpe from a one-off book
-                #page_content = page_content.replace('\\', '\\\\')
+                page_content = page_content.replace('\n', '') # Remove and new lines.  JSON doesn't like them.
+                page_content = re.sub(r'\\(?![bfnrtv\'\"\\])', '', page_content)  # Remove any backslashes that aren't escaping a character JSON needs escaped
                 json_data=json_decode(page_content)
                 for json_data in json_data:
                     if 'datePublished' in json_data:
