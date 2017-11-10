@@ -20,7 +20,7 @@ def json_decode(output):
 
 
 # URLs
-VERSION_NO = '1.2017.11.09.5'
+VERSION_NO = '1.2017.11.10.1'
 
 REQUEST_DELAY = 0       # Delay used when requesting HTML, may be good to have to prevent being banned from the site
 
@@ -499,7 +499,10 @@ class AudiobookAlbum(Agent.Album):
                         #for key in json_data:
                         #    Log('{0}:{1}'.format(key, json_data[key]))
                         genre1=json_data['itemListElement'][1]['item']['name']
-                        genre2=json_data['itemListElement'][2]['item']['name']
+                        try:  # Not all books have two genre tags.
+                            genre2=json_data['itemListElement'][2]['item']['name']
+                        except:
+                            continue
             
             for r in html.xpath('//li[contains (@class, "seriesLabel")]'):
                 series = self.getStringContentFromXPath(r, '//li[contains (@class, "seriesLabel")]//a[1]')
