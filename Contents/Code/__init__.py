@@ -571,7 +571,7 @@ class AudiobookAlbum(Agent.Album):
 		# Add the genres
         metadata.genres.clear()
         metadata.genres.add(series)
-        narrators_list = narrator.split(",")
+        narrators_list = [item.strip() for item in narrator.split(",")]
         for narrators in narrators_list:
             metadata.genres.add(narrators)
         metadata.genres.add(genre1)
