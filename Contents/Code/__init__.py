@@ -5,6 +5,9 @@ import urllib
 import Queue
 import json
 
+import datetime
+from dateutil import parser
+
 #from mutagen import File
 #from mutagen.mp4 import MP4
 #from mutagen.id3 import ID3
@@ -137,7 +140,9 @@ class AudiobookArtist(Agent.Artist):
 
     def getDateFromString(self, string):
         try:
-            return Datetime.ParseDate(string).date()
+            if not len(string): return None
+            DEFAULT_DATE = datetime.datetime(datetime.MINYEAR, 1, 1)
+            return parser.parse(string, default=DEFAULT_DATE).date()
         except:
             return None
 
@@ -237,7 +242,9 @@ class AudiobookAlbum(Agent.Album):
 
     def getDateFromString(self, string):
         try:
-            return Datetime.ParseDate(string).date()
+            if not len(string): return None
+            DEFAULT_DATE = datetime.datetime(datetime.MINYEAR, 1, 1)
+            return parser.parse(string, default=DEFAULT_DATE).date()
         except:
             return None
 
