@@ -57,7 +57,6 @@ def SetupUrls(sitetype, base, lang='en'):
         Log('Pulling language from sites array')
         lang=sites_langs[base]['lang']
         if lang in intl_sites :
-          base=intl_sites[lang]['url']
           urlsearchtitle=intl_sites[lang]['urltitle']
           ctx['REL_DATE']=intl_sites[lang]['rel_date']
           ctx['NAR_BY'  ]=intl_sites[lang]['nar_by']
