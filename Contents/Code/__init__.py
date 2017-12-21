@@ -14,13 +14,13 @@ import json
 
 def json_decode(output):
   try:
-    return json.loads(output)
+    return json.loads(output,encoding="utf-8")
   except:
     return None
 
 
 # URLs
-VERSION_NO = '1.2017.11.10.1'
+VERSION_NO = '1.2017.12.21.1'
 
 REQUEST_DELAY = 0       # Delay used when requesting HTML, may be good to have to prevent being banned from the site
 
@@ -31,10 +31,10 @@ IGNORE_SCORE = 45       # Any score lower than this will be ignored.
 THREAD_MAX = 20
 
 intl_sites={
-    'en' : { 'url': 'www.audible.com'  , 'rel_date' : u'Release Date'         , 'nar_by' : u'Narrated By'   , 'nar_by2': u'Narrated by'},
-    'fr' : { 'url': 'www.audible.fr'   , 'rel_date' : u'Date de publication'  , 'nar_by' : u'Narrateur(s)'  , 'nar_by2': u'Lu par'},
-    'de' : { 'url': 'www.audible.de'   , 'rel_date' : u'Erscheinungsdatum'    , 'nar_by' : u'Gesprochen von', 'rel_date2': u'Veröffentlicht'},
-    'it' : { 'url': 'www.audible.it'   , 'rel_date' : u'Data di Pubblicazione', 'nar_by' : u'Narratore'     },
+    'en' : { 'url': 'www.audible.com'  , 'urltitle' : u'title='         , 'rel_date' : u'Release date'         , 'nar_by' : u'Narrated By'   , 'nar_by2': u'Narrated by'},
+    'fr' : { 'url': 'www.audible.fr'   , 'urltitle' : u'searchTitle='   , 'rel_date' : u'Date de publication'  , 'nar_by' : u'Narrateur(s)'  , 'nar_by2': u'Lu par'},
+    'de' : { 'url': 'www.audible.de'   , 'urltitle' : u'searchTitle='   , 'rel_date' : u'Erscheinungsdatum'    , 'nar_by' : u'Gesprochen von', 'rel_date2': u'Veröffentlicht'},
+    'it' : { 'url': 'www.audible.it'   , 'urltitle' : u'searchTitle='   , 'rel_date' : u'Data di Pubblicazione', 'nar_by' : u'Narratore'     },
     #'jp' : { 'url': 'www.audible.co.jp', 'rel_date' : u'N/A', 'nar_by' : u'ナレーター'     }, # untested
     }
 
@@ -58,6 +58,7 @@ def SetupUrls(sitetype, base, lang='en'):
         lang=sites_langs[base]['lang']
         if lang in intl_sites :
           base=intl_sites[lang]['url']
+          urlsearchtitle=intl_sites[lang]['urltitle']
           ctx['REL_DATE']=intl_sites[lang]['rel_date']
           ctx['NAR_BY'  ]=intl_sites[lang]['nar_by']
           if 'rel_date2' in intl_sites[lang]:
@@ -69,7 +70,7 @@ def SetupUrls(sitetype, base, lang='en'):
           else:
               ctx['NAR_BY_INFO' ]=ctx['NAR_BY'  ]
         else:
-          ctx['REL_DATE'     ]='Release Date'
+          ctx['REL_DATE'     ]='Release date'
           ctx['REL_DATE_INFO']=ctx['REL_DATE']
           ctx['NAR_BY'       ]='Narrated By'
           ctx['NAR_BY_INFO'  ]='Narrated by'		        
@@ -87,6 +88,7 @@ def SetupUrls(sitetype, base, lang='en'):
           base='www.audible.com'
       if lang in intl_sites :
         base=intl_sites[lang]['url']
+        urlsearchtitle=intl_sites[lang]['urltitle']
         ctx['REL_DATE']=intl_sites[lang]['rel_date']
         ctx['NAR_BY'  ]=intl_sites[lang]['nar_by']
         if 'rel_date2' in intl_sites[lang]:
@@ -98,18 +100,19 @@ def SetupUrls(sitetype, base, lang='en'):
         else:
             ctx['NAR_BY_INFO' ]=ctx['NAR_BY'  ]
       else:
-        ctx['REL_DATE'     ]='Release Date'
+        ctx['REL_DATE'     ]='Release date'
         ctx['REL_DATE_INFO']=ctx['REL_DATE']
         ctx['NAR_BY'       ]='Narrated By'
         ctx['NAR_BY_INFO'  ]='Narrated by'
 
 
     AUD_BASE_URL='https://' + str(base) + '/'
+    AUD_TITLE_URL=urlsearchtitle
     ctx['AUD_BOOK_INFO'         ]=AUD_BASE_URL + 'pd/%s?ipRedirectOverride=true'
     ctx['AUD_ARTIST_SEARCH_URL' ]=AUD_BASE_URL + 'search?searchAuthor=%s&ipRedirectOverride=true'
-    ctx['AUD_ALBUM_SEARCH_URL'  ]=AUD_BASE_URL + 'search?searchTitle=%s&x=41&ipRedirectOverride=true'
+    ctx['AUD_ALBUM_SEARCH_URL'  ]=AUD_BASE_URL + 'search?' + AUD_TITLE_URL + '%s&x=41&ipRedirectOverride=true'
     ctx['AUD_KEYWORD_SEARCH_URL']=AUD_BASE_URL + 'search?filterby=field-keywords&advsearchKeywords=%s&x=41&ipRedirectOverride=true'
-    ctx['AUD_SEARCH_URL'        ]=AUD_BASE_URL + 'search?searchTitle={0}&searchAuthor={1}&x=41&ipRedirectOverride=true'
+    ctx['AUD_SEARCH_URL'        ]=AUD_BASE_URL + 'search?' + AUD_TITLE_URL + '{0}&searchAuthor={1}&x=41&ipRedirectOverride=true'
     return ctx
 
 
@@ -170,6 +173,7 @@ class AudiobookArtist(Agent.Artist):
         html = HTML.ElementFromURL(url, sleep=REQUEST_DELAY)
 
         found = []
+		
         for r in html.xpath('//div[a/img[@class="yborder"]]'):
             date = self.getDateFromString(self.getStringContentFromXPath(r, 'text()[1]'))
             title = self.getStringContentFromXPath(r, 'a[2]')
@@ -265,7 +269,22 @@ class AudiobookAlbum(Agent.Album):
     def doSearch(self, url, ctx):
         html = HTML.ElementFromURL(url, sleep=REQUEST_DELAY)
         found = []
-        
+        self.Log('-----------------------------------------just before new xpath line--------------------')
+        for r in html.xpath('//ul//li[contains(@class,"productListItem")]'):
+            datetext = self.getStringContentFromXPath(r, 'div/div/div/div/div/div/span/ul/li[contains (@class,"releaseDateLabel")]/span'.decode('utf-8'))
+            datetext=re.sub(r'[^0-9\-]', '',datetext)
+            date=self.getDateFromString(datetext)
+            title = self.getStringContentFromXPath(r, 'div/div/div/div/div/div/span/ul//a[1]')
+            murl = self.getAnchorUrlFromXPath(r, 'div/div/div/div/div/div/span/ul/li/h3//a[1]')
+            thumb = self.getImageUrlFromXPath(r, 'div/div/div/div/div/div/div[contains(@class,"responsive-product-square")]/div/a/img')
+            author = self.getStringContentFromXPath(r, 'div/div/div/div/div/div/span/ul/li[contains (@class,"authorLabel")]/span/a[1]')
+            narrator = self.getStringContentFromXPath(r, 'div/div/div/div/div/div/span/ul/li[contains (@class,"narratorLabel")]/span//a[1]'.format(ctx['NAR_BY']).decode('utf-8'))
+            self.Log('---------------------------------------XPATH SEARCH HIT-----------------------------------------------')
+            
+            found.append({'url': murl, 'title': title, 'date': date, 'thumb': thumb, 'author': author, 'narrator': narrator})
+
+        self.Log('-----------------------------------------just after new xpath line--------------------')		
+				
         for r in html.xpath('//div[contains (@class, "adbl-search-result")]'):
             date = self.getDateFromString(self.getStringContentFromXPath(r, 'div/div/ul/li[contains (., "{0}")]/span[2]//text()'.format(ctx['REL_DATE']).decode('utf-8')))
             title = self.getStringContentFromXPath(r, 'div/div/div/div/a[1]')
@@ -352,7 +371,7 @@ class AudiobookAlbum(Agent.Album):
             self.Log('Found %s result(s) for query "%s"', len(found), normalizedName)
             i = 1
             for f in found:
-                self.Log('    %s. (title) %s (url)[%s] (date)(%s) (thumb){%s}', i, f['title'], f['url'], str(f['date']), f['thumb'])
+                self.Log('    %s. (title) %s (author) %s (url)[%s] (date)(%s) (thumb){%s}', i, f['title'], f['author'], f['url'], str(f['date']), f['thumb'])
                 i += 1
 
         self.Log('-----------------------------------------------------------------------')
@@ -364,10 +383,16 @@ class AudiobookAlbum(Agent.Album):
             self.Log('URL For Breakdown: %s', url)
 
             # Get the id
+#            for itemId in url.split('/') :
             for itemId in url.split('/') :
                 if re.match(r'B0[0-9A-Z]{8,8}', itemId):
                     break
                 itemId=None
+
+		    #New Search results contain question marks after the ID
+            for itemId in itemId.split('?') :
+                if re.match(r'B0[0-9A-Z]{8,8}', itemId):
+                    break
 
             if len(itemId) == 0:
                 Log('No Match: %s', url)
@@ -447,6 +472,7 @@ class AudiobookAlbum(Agent.Album):
             pass
         
         date=None
+        rating=None
         series=''
         genre1=None
         genre2=None
@@ -466,10 +492,16 @@ class AudiobookAlbum(Agent.Album):
             self.Log('---------------------------------------XPATH SEARCH HIT-----------------------------------------------')
 		
         if date is None :
+            #for r in html.xpath('//div[contains (@class,"slot bottomSlot")]/script[contains (@type, "application/ld+json")]'):
             for r in html.xpath('//script[contains (@type, "application/ld+json")]'):
                 page_content = r.text_content()
-                page_content = page_content.replace('\n', '') # Remove and new lines.  JSON doesn't like them.
-                page_content = re.sub(r'\\(?![bfnrtv\'\"\\])', '', page_content)  # Remove any backslashes that aren't escaping a character JSON needs escaped
+                page_content = page_content.replace('\n', '')
+                #page_content = page_content.replace('\'', '\\\'')
+                #page_content = re.sub(r'\\(?![bfnrtv\'\"\\])', '', page_content)  
+				# Remove any backslashes that aren't escaping a character JSON needs escaped
+                remove_inv_json_esc=re.compile(r'([^\\])(\\(?![bfnrt\'\"\\/]|u[A-Fa-f0-9]{4}))')
+                page_content=remove_inv_json_esc.sub(r'\1\\\2', page_content)
+                self.Log(page_content)
                 json_data=json_decode(page_content)
                 for json_data in json_data:
                     if 'datePublished' in json_data:
@@ -499,7 +531,7 @@ class AudiobookAlbum(Agent.Album):
                         #for key in json_data:
                         #    Log('{0}:{1}'.format(key, json_data[key]))
                         genre1=json_data['itemListElement'][1]['item']['name']
-                        try:  # Not all books have two genre tags.
+                        try:
                             genre2=json_data['itemListElement'][2]['item']['name']
                         except:
                             continue
