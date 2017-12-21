@@ -9,6 +9,12 @@
     "values"  : ["www.audible.com","www.audible.co.uk","www.audible.com.au","www.audible.de","www.audible.fr","www.audible.it"],
     "default" : "www.audible.com"
 },{
+    "id" : "narrators_to_genre",
+    "label" : "Add each narrator to the genres tag: ",
+    "type" : "enum",
+    "values" : ["enabled", "and sort first ", "and prefix with • ", "disabled"],
+    "default" : "enabled"
+},{
 	"id": "debug",
 	"label": "Ouput debugging info in logs",
 	"type": "bool",

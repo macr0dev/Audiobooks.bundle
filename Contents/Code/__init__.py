@@ -570,14 +570,17 @@ class AudiobookAlbum(Agent.Album):
 
 		# Add the genres
         metadata.genres.clear()
-        metadata.genres.add(series)
-        narrators_list = [item.strip() for item in narrator.split(",")]
-        for narrators in narrators_list:
-            metadata.genres.add(narrators)
         metadata.genres.add(genre1)
         metadata.genres.add(genre2)
-		
-		# other metadata
+        metadata.genres.add(series)
+
+        # optionally add narrators to genre tags (with selected prefix)
+        narrators_list = [item.strip() for item in narrator.split(",")]
+        if Prefs['narrators_to_genre'].lower() != 'disabled':
+            prefix = re.sub(r'\s?\w+', '', Prefs['narrators_to_genre'])
+            [metadata.genres.add(prefix + x) for x in narrators_list]
+
+        # other metadata
         metadata.title = title
         metadata.studio = studio
         metadata.summary = synopsis
