@@ -423,7 +423,7 @@ class AudiobookAlbum(Agent.Album):
               scorebase4 = author
               #self.Log('scorebase3:    %s', scorebase3)
               #self.Log('scorebase4:    %s', scorebase4)
-              score = INITIAL_SCORE - Util.LevenshteinDistance(scorebase3, scorebase4)
+              score = int(round((score + INITIAL_SCORE - Util.LevenshteinDistance(scorebase3, scorebase4)) /2))
 
 
             self.Log('* Title is              %s', title)
