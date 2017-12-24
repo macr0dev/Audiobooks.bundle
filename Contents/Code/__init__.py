@@ -471,7 +471,7 @@ class AudiobookAlbum(Agent.Album):
             pass
         
         date=None
-        rating=None
+        rating=0.0
         series=''
         genre1=None
         genre2=None
@@ -479,6 +479,7 @@ class AudiobookAlbum(Agent.Album):
         for r in html.xpath('//div[contains (@id, "adbl_page_content")]'):
             date = self.getDateFromString(self.getStringContentFromXPath(r, '//li[contains (., "{0}")]/span[2]//text()'.format(ctx['REL_DATE_INFO']).decode('utf-8')))
             title = self.getStringContentFromXPath(r, '//h1[contains (@class, "adbl-prod-h1-title")]/text()')
+            rating = self.getStringContentFromXPath(r, '//span[contains (@class, "rating-average")]/text()')
             murl = self.getAnchorUrlFromXPath(r, 'div/div/div/div/a[1]')
             thumb = self.getImageUrlFromXPath(r, 'div/div/div/div/div/img')
             author = self.getStringContentFromXPath(r, '//li//a[contains (@class,"author-profile-link")][1]')
@@ -582,6 +583,9 @@ class AudiobookAlbum(Agent.Album):
         metadata.summary = synopsis
         metadata.posters[1] = Proxy.Media(HTTP.Request(thumb))
         metadata.posters.validate_keys(thumb)
+
+        # make sure rating is not an empty string
+        rating = float(rating if rating != '' else '0')
         metadata.rating = float(rating) * 2
 
         metadata.title = title
