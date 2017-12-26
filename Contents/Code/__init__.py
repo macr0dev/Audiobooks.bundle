@@ -542,17 +542,9 @@ class AudiobookAlbum(Agent.Album):
         
 		
         #cleanup synopsis
-        synopsis = synopsis.replace("<i>", "")
-        synopsis = synopsis.replace("</i>", "")
-        synopsis = synopsis.replace("<u>", "")
-        synopsis = synopsis.replace("</u>", "")
-        synopsis = synopsis.replace("<b>", "")
-        synopsis = synopsis.replace("</b>", "")
-        synopsis = synopsis.replace("<br />", "")
-        synopsis = synopsis.replace("<p>", "")
-        synopsis = synopsis.replace("</p>", "\n")
-		
-		
+        synopsis = re.sub(r'<([pP]|br|br ?/)>', '\n',   synopsis)
+        synopsis = re.sub(r'<(/?[iIuUbBpP])>',    '',   synopsis.strip())
+
         self.Log('date:        %s', date)
         self.Log('title:       %s', title)
         self.Log('author:      %s', author)
