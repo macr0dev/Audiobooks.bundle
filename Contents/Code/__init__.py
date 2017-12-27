@@ -105,6 +105,9 @@ def SetupUrls(sitetype, base, lang='en'):
         ctx['NAR_BY'       ]='Narrated By'
         ctx['NAR_BY_INFO'  ]='Narrated by'
 
+    # Match titles using more flexible keyword search
+    if Prefs['keyword_searching']:
+        urlsearchtitle="advsearchKeywords="
 
     AUD_BASE_URL='https://' + str(base) + '/'
     AUD_TITLE_URL=urlsearchtitle
