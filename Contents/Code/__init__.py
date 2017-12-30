@@ -542,8 +542,8 @@ class AudiobookAlbum(Agent.Album):
         
 		
         #cleanup synopsis
-        synopsis = re.sub(r'<([pP]|br|br ?/)>', '\n',   synopsis)
-        synopsis = re.sub(r'<(/?[iIuUbBpP])>',    '',   synopsis.strip())
+        synopsis = re.sub(r'<([pP]|li|br|br ?/)>',      '\n',   synopsis)
+        synopsis = re.sub(r'</?([iIuUbBpP]|li|ul)>',      '',   synopsis.strip())
 
         self.Log('date:        %s', date)
         self.Log('title:       %s', title)
