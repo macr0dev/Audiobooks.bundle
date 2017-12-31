@@ -572,7 +572,15 @@ class AudiobookAlbum(Agent.Album):
         metadata.genres.clear()
         metadata.genres.add(genre1)
         metadata.genres.add(genre2)
-        metadata.genres.add(series)
+
+        # add series to genre and collections (not currently shown in UI)
+        metadata.collections.clear()
+        metadata.collections.add(series)
+        prefix = re.sub(r'\s?\w+', '', Prefs['series_to_genre'])
+        if Prefs['series_to_genre']: metadata.genres.add(series)
+
+        # add series to studio (for filtering, search not supported)
+        metadata.studio = series if Prefs['series_to_studio'] else studio
 
         # optionally add narrators to genre tags (with selected prefix)
         narrators_list = [item.strip() for item in narrator.split(",")]
@@ -582,13 +590,11 @@ class AudiobookAlbum(Agent.Album):
 
         # other metadata
         metadata.title = title
-        metadata.studio = studio
         metadata.summary = synopsis
         metadata.posters[1] = Proxy.Media(HTTP.Request(thumb))
         metadata.posters.validate_keys(thumb)
         metadata.rating = float(rating) * 2
 
-        metadata.title = title
         media.artist = author
 		
         self.writeInfo('New data', url, metadata)

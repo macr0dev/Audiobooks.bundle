@@ -15,6 +15,17 @@
     "values" : ["enabled", "and sort first ", "and prefix with • ", "disabled"],
     "default" : "enabled"
 },{
+    "id" : "series_to_genre",
+    "label" : "Add each series title to the genres tag: ",
+    "type" : "enum",
+    "values" : ["enabled", "and sort first  ", "and prefix with • ", "disabled"],
+    "default" : "enabled"
+},{
+    "id" : "series_to_studio",
+    "label" : "Add main series title to studio tag",
+    "type" : "bool",
+    "default" : "false"
+},{
 	"id": "debug",
 	"label": "Ouput debugging info in logs",
 	"type": "bool",
