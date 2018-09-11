@@ -20,9 +20,9 @@ def json_decode(output):
 
 
 # URLs
-VERSION_NO = '1.2017.12.21.1'
+VERSION_NO = '1.2018.09.11.1'
 
-REQUEST_DELAY = 0       # Delay used when requesting HTML, may be good to have to prevent being banned from the site
+REQUEST_DELAY = 10       # Delay used when requesting HTML, may be good to have to prevent being banned from the site
 
 INITIAL_SCORE = 100     # Starting value for score before deductions are taken.
 GOOD_SCORE = 98         # Score required to short-circuit matching and stop searching.
@@ -383,15 +383,14 @@ class AudiobookAlbum(Agent.Album):
             self.Log('URL For Breakdown: %s', url)
 
             # Get the id
-#            for itemId in url.split('/') :
             for itemId in url.split('/') :
-                if re.match(r'B0[0-9A-Z]{8,8}', itemId):
+                if re.match(r'^[0-9A-Z]{10,10}', itemId):  # IDs No longer start with just 'B0'
                     break
                 itemId=None
 
 		    #New Search results contain question marks after the ID
             for itemId in itemId.split('?') :
-                if re.match(r'B0[0-9A-Z]{8,8}', itemId):
+                if re.match(r'^[0-9A-Z]{10,10}', itemId):  # IDs No longer start with just 'B0'
                     break
 
             if len(itemId) == 0:
