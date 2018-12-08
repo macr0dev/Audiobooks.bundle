@@ -33,7 +33,7 @@ THREAD_MAX = 20
 intl_sites={
     'en' : { 'url': 'www.audible.com'  , 'urltitle' : u'title='         , 'rel_date' : u'Release date'         , 'nar_by' : u'Narrated By'   , 'nar_by2': u'Narrated by'},
     'fr' : { 'url': 'www.audible.fr'   , 'urltitle' : u'searchTitle='   , 'rel_date' : u'Date de publication'  , 'nar_by' : u'Narrateur(s)'  , 'nar_by2': u'Lu par'},
-    'de' : { 'url': 'www.audible.de'   , 'urltitle' : u'searchTitle='   , 'rel_date' : u'Erscheinungsdatum'    , 'nar_by' : u'Gesprochen von', 'rel_date2': u'Veröffentlicht'},
+    'de' : { 'url': 'www.audible.de'   , 'urltitle' : u'title='   , 'rel_date' : u'Erscheinungsdatum'    , 'nar_by' : u'Gesprochen von', 'rel_date2': u'Veröffentlicht'},
     'it' : { 'url': 'www.audible.it'   , 'urltitle' : u'searchTitle='   , 'rel_date' : u'Data di Pubblicazione', 'nar_by' : u'Narratore'     },
     #'jp' : { 'url': 'www.audible.co.jp', 'rel_date' : u'N/A', 'nar_by' : u'ナレーター'     }, # untested
     }
