@@ -31,7 +31,7 @@ IGNORE_SCORE = 45       # Any score lower than this will be ignored.
 THREAD_MAX = 20
 
 intl_sites={
-    'en' : { 'url': 'www.audible.com'  , 'urltitle' : u'title='         , 'rel_date' : u'Release date'         , 'nar_by' : u'Narrated By'   , 'nar_by2': u'Narrated by'},
+    'en' : { 'url': 'www.audible.com'  , 'urltitle' : u'title='         , 'rel_date' : u'Release '             , 'nar_by' : u'Narrated By'   , 'nar_by2': u'Narrated by'},
     'fr' : { 'url': 'www.audible.fr'   , 'urltitle' : u'searchTitle='   , 'rel_date' : u'Date de publication'  , 'nar_by' : u'Narrateur(s)'  , 'nar_by2': u'Lu par'},
     'de' : { 'url': 'www.audible.de'   , 'urltitle' : u'title='   , 'rel_date' : u'Erscheinungsdatum'    , 'nar_by' : u'Gesprochen von', 'rel_date2': u'Veröffentlicht'},
     'it' : { 'url': 'www.audible.it'   , 'urltitle' : u'searchTitle='   , 'rel_date' : u'Data di Pubblicazione', 'nar_by' : u'Narratore'     },
@@ -57,7 +57,6 @@ def SetupUrls(sitetype, base, lang='en'):
         Log('Pulling language from sites array')
         lang=sites_langs[base]['lang']
         if lang in intl_sites :
-          base=intl_sites[lang]['url']
           urlsearchtitle=intl_sites[lang]['urltitle']
           ctx['REL_DATE']=intl_sites[lang]['rel_date']
           ctx['NAR_BY'  ]=intl_sites[lang]['nar_by']
@@ -471,7 +470,7 @@ class AudiobookAlbum(Agent.Album):
             pass
         
         date=None
-        rating=None
+        rating=0.0
         series=''
         genre1=None
         genre2=None
@@ -479,10 +478,11 @@ class AudiobookAlbum(Agent.Album):
         for r in html.xpath('//div[contains (@id, "adbl_page_content")]'):
             date = self.getDateFromString(self.getStringContentFromXPath(r, '//li[contains (., "{0}")]/span[2]//text()'.format(ctx['REL_DATE_INFO']).decode('utf-8')))
             title = self.getStringContentFromXPath(r, '//h1[contains (@class, "adbl-prod-h1-title")]/text()')
+            rating = self.getStringContentFromXPath(r, '//span[contains (@class, "rating-average")]/text()')
             murl = self.getAnchorUrlFromXPath(r, 'div/div/div/div/a[1]')
             thumb = self.getImageUrlFromXPath(r, 'div/div/div/div/div/img')
             author = self.getStringContentFromXPath(r, '//li//a[contains (@class,"author-profile-link")][1]')
-            narrator = self.getStringContentFromXPath(r, '//li[contains (., "{0}")]//span[2]'.format(ctx['NAR_BY_INFO'])).strip().decode('utf-8')
+            narrator = self.getStringContentFromXPath(r, '//li[contains (@class,"adbl-narrator-row")]/span[2]').strip().decode('utf-8')
             studio = self.getStringContentFromXPath(r, '//li//a[contains (@id,"PublisherSearchLink")][1]')
             synopsis = self.getStringContentFromXPath(r, '//div[contains (@class, "disc-summary")]/div[*]').strip()
             series = self.getStringContentFromXPath(r, '//div[contains (@class, "adbl-series-link")]//a[1]')
@@ -582,6 +582,9 @@ class AudiobookAlbum(Agent.Album):
         metadata.summary = synopsis
         metadata.posters[1] = Proxy.Media(HTTP.Request(thumb))
         metadata.posters.validate_keys(thumb)
+
+        # make sure rating is not an empty string
+        rating = float(rating if rating != '' else '0')
         metadata.rating = float(rating) * 2
 
         metadata.title = title
