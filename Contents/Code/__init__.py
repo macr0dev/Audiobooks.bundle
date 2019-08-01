@@ -274,7 +274,7 @@ class AudiobookAlbum(Agent.Album):
             datetext = self.getStringContentFromXPath(r, 'div/div/div/div/div/div/span/ul/li[contains (@class,"releaseDateLabel")]/span'.decode('utf-8'))
             datetext=re.sub(r'[^0-9\-]', '',datetext)
             date=self.getDateFromString(datetext)
-            title = self.getStringContentFromXPath(r, 'div/div/div/div/div/div/span/ul//a[1]')
+            title = self.getStringContentFromXPath(r, 'div/div/div/div/div/div/span/ul//a[contains(@class,"bc-color-link")]')
             murl = self.getAnchorUrlFromXPath(r, 'div/div/div/div/div/div/span/ul/li/h3//a[1]')
             thumb = self.getImageUrlFromXPath(r, 'div/div/div/div/div/div/div[contains(@class,"responsive-product-square")]/div/a/img')
             author = self.getStringContentFromXPath(r, 'div/div/div/div/div/div/span/ul/li[contains (@class,"authorLabel")]/span/a[1]')
