@@ -317,6 +317,10 @@ class AudiobookAlbum(Agent.Album):
         if media.album == '[Unknown Album]' and not manual:
           self.Log('Album Title is [Unknown Album] on an automatic search.  Returning')
           return	
+
+        # Handle a case in newer Plex versions where media.name is sometimes None
+        if media.name is None:
+          media.name = media.title
 	    
         if manual:
           Log('You clicked \'fix match\'. This may have returned no useful results because it\'s searching using the title of the first track.')
