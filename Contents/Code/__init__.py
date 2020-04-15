@@ -20,7 +20,7 @@ def json_decode(output):
 
 
 # URLs
-VERSION_NO = '1.2019.07.29.1'
+VERSION_NO = '1.2020.04.15.1'
 
 REQUEST_DELAY = 10       # Delay used when requesting HTML, may be good to have to prevent being banned from the site
 
@@ -35,16 +35,16 @@ intl_sites={
     'fr' : { 'url': 'www.audible.fr'   , 'urltitle' : u'title='   , 'rel_date' : u'Date de publication'  , 'nar_by' : u'Narrateur(s)'  , 'nar_by2': u'Lu par'},
     'de' : { 'url': 'www.audible.de'   , 'urltitle' : u'title='   , 'rel_date' : u'Erscheinungsdatum'    , 'nar_by' : u'Gesprochen von', 'rel_date2': u'Veröffentlicht'},
     'it' : { 'url': 'www.audible.it'   , 'urltitle' : u'title='   , 'rel_date' : u'Data di Pubblicazione', 'nar_by' : u'Narratore'     },
-    #'jp' : { 'url': 'www.audible.co.jp', 'rel_date' : u'N/A', 'nar_by' : u'ナレーター'     }, # untested
     }
 
 sites_langs={
-    'www.audible.com' : { 'lang' : 'en' },	
-    'www.audible.co.uk' : { 'lang' : 'en' },	
-    'www.audible.com.au' : { 'lang' : 'en' },	
-    'www.audible.fr' : { 'lang' : 'fr' },	
-    'www.audible.de' : { 'lang' : 'de' },	
-    'www.audible.it' : { 'lang' : 'it' },	
+    'www.audible.com' : { 'lang' : 'en'     , 'url': 'www.audible.com'  },
+    'www.audible.ca' : { 'lang' : 'en'      , 'url': 'www.audible.ca'   },
+    'www.audible.co.uk' : { 'lang' : 'en'   , 'url': 'www.audible.co.uk'},
+    'www.audible.com.au' : { 'lang' : 'en'  , 'url': 'www.audible.com.au'},
+    'www.audible.fr' : { 'lang' : 'fr'      , 'url': 'www.audible.fr'   },
+    'www.audible.de' : { 'lang' : 'de'      , 'url': 'www.audible.de'   },
+    'www.audible.it' : { 'lang' : 'it'      , 'url': 'www.audible.it'   },
     }
 
 def SetupUrls(sitetype, base, lang='en'):
@@ -57,7 +57,7 @@ def SetupUrls(sitetype, base, lang='en'):
         Log('Pulling language from sites array')
         lang=sites_langs[base]['lang']
         if lang in intl_sites :
-          base=intl_sites[lang]['url']
+          base=sites_langs[base]['url']
           urlsearchtitle=intl_sites[lang]['urltitle']
           ctx['REL_DATE']=intl_sites[lang]['rel_date']
           ctx['NAR_BY'  ]=intl_sites[lang]['nar_by']
