@@ -6,7 +6,7 @@
     "id"      : "site",
     "label"   : "Select Audible site to use: ",
     "type"    : "enum",
-    "values"  : ["www.audible.com","www.audible.co.uk","www.audible.com.au","www.audible.de","www.audible.fr","www.audible.it"],
+    "values"  : ["www.audible.com","www.audible.ca","www.audible.co.uk","www.audible.com.au","www.audible.de","www.audible.fr","www.audible.it"],
     "default" : "www.audible.com"
 },{
 	"id": "debug",
