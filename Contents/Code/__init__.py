@@ -31,7 +31,7 @@ IGNORE_SCORE = 45       # Any score lower than this will be ignored.
 THREAD_MAX = 20
 
 intl_sites={
-    'en' : { 'url': 'www.audible.com'  , 'urltitle' : u'title='         , 'rel_date' : u'Release date'         , 'nar_by' : u'Narrated By'   , 'nar_by2': u'Narrated by'},
+    'en' : { 'url': 'www.audible.com'  , 'urltitle' : u'title='   , 'rel_date' : u'Release date'         , 'nar_by' : u'Narrated By'   , 'nar_by2': u'Narrated by'},
     'fr' : { 'url': 'www.audible.fr'   , 'urltitle' : u'title='   , 'rel_date' : u'Date de publication'  , 'nar_by' : u'Narrateur(s)'  , 'nar_by2': u'Lu par'},
     'de' : { 'url': 'www.audible.de'   , 'urltitle' : u'title='   , 'rel_date' : u'Erscheinungsdatum'    , 'nar_by' : u'Gesprochen von', 'rel_date2': u'Veröffentlicht'},
     'it' : { 'url': 'www.audible.it'   , 'urltitle' : u'title='   , 'rel_date' : u'Data di Pubblicazione', 'nar_by' : u'Narratore'     },
@@ -278,38 +278,20 @@ class AudiobookAlbum(Agent.Album):
             murl = self.getAnchorUrlFromXPath(r, 'div/div/div/div/div/div/span/ul/li/h3//a[1]')
             thumb = self.getImageUrlFromXPath(r, 'div/div/div/div/div/div/div[contains(@class,"responsive-product-square")]/div/a/img')
             author = self.getStringContentFromXPath(r, 'div/div/div/div/div/div/span/ul/li[contains (@class,"authorLabel")]/span/a[1]')
+            series = self.getStringContentFromXPath(r, 'div/div/div/div/div/div/span/ul/li[contains (@class,"seriesLabel")]/span/a[1]')
             narrator = self.getStringContentFromXPath(r, 'div/div/div/div/div/div/span/ul/li[contains (@class,"narratorLabel")]/span//a[1]'.format(ctx['NAR_BY']).decode('utf-8'))
             self.Log('---------------------------------------XPATH SEARCH HIT-----------------------------------------------')
             
-            found.append({'url': murl, 'title': title, 'date': date, 'thumb': thumb, 'author': author, 'narrator': narrator})
+            found.append({'url': murl, 'title': title, 'date': date, 'thumb': thumb, 'author': author, 'narrator': narrator, 'series': series})
 
         self.Log('-----------------------------------------just after new xpath line--------------------')		
 				
-        for r in html.xpath('//div[contains (@class, "adbl-search-result")]'):
-            date = self.getDateFromString(self.getStringContentFromXPath(r, 'div/div/ul/li[contains (., "{0}")]/span[2]//text()'.format(ctx['REL_DATE']).decode('utf-8')))
-            title = self.getStringContentFromXPath(r, 'div/div/div/div/a[1]')
-            murl = self.getAnchorUrlFromXPath(r, 'div/div/div/div/a[1]')
-            thumb = self.getImageUrlFromXPath(r, 'div[contains (@class,"adbl-prod-image-sample-cont")]/a/img')
-            author = self.getStringContentFromXPath(r, 'div/div/ul/li//a[contains (@class,"author-profile-link")][1]')
-            narrator = self.getStringContentFromXPath(r, 'div/div/ul/li[contains (., "{0}")]//a[1]'.format(ctx['NAR_BY']).decode('utf-8'))
-            self.Log('---------------------------------------XPATH SEARCH HIT-----------------------------------------------')
-            
-            found.append({'url': murl, 'title': title, 'date': date, 'thumb': thumb, 'author': author, 'narrator': narrator})
-
         return found
 
     def search(self, results, media, lang, manual):
         ctx=SetupUrls(Prefs['sitetype'], Prefs['site'], lang)
         LCL_IGNORE_SCORE=IGNORE_SCORE
         
-        self.Log('---------------------------------------ALBUM SEARCH-----------------------------------------------')
-        self.Log('* ID:              %s', media.parent_metadata.id)
-        self.Log('* Title:           %s', media.title)
-        self.Log('* Name:            %s', media.name)
-        self.Log('* Album:           %s', media.album)
-        self.Log('* Artist:          %s', media.artist)
-        self.Log('--------------------------------------------------------------------------------------------------')	
-	
         # Handle a couple of edge cases where album search will give bad results.
         if media.album is None and not manual:
           self.Log('Album Title is NULL on an automatic search.  Returning')
@@ -338,7 +320,7 @@ class AudiobookAlbum(Agent.Album):
         self.Log('* ID:              %s', media.parent_metadata.id)
         self.Log('* Title:           %s', media.title)
         self.Log('* Name:            %s', media.name)
-        self.Log('* Name:            %s', media.album)
+        self.Log('* Artist:          %s', media.artist)
         self.Log('-----------------------------------------------------------------------')
         
         # Normalize the name
@@ -408,6 +390,7 @@ class AudiobookAlbum(Agent.Album):
             date     = f['date']
             year     = ''
             author   = f['author']
+            series   = f['series']
             narrator = f['narrator']
 
             if date is not None:
@@ -432,6 +415,7 @@ class AudiobookAlbum(Agent.Album):
             self.Log('* Title is              %s', title)
             self.Log('* Author is             %s', author)
             self.Log('* Narrator is           %s', narrator)
+            self.Log('* Series is             %s', series)
             self.Log('* Date is               %s', str(date))
             self.Log('* Score is              %s', str(score))
             self.Log('* Thumb is              %s', thumb)
@@ -540,8 +524,15 @@ class AudiobookAlbum(Agent.Album):
                             continue
             
             for r in html.xpath('//li[contains (@class, "seriesLabel")]'):
-                series = self.getStringContentFromXPath(r, '//li[contains (@class, "seriesLabel")]//a[1]')
-                #Log(series.strip())
+                Log("ACA_____________________________________________________________________")
+                series = ''
+                counter=1
+                for r in html.xpath('//span[contains (@class, "seriesLabel")]/a'):
+                    if counter > 1:
+                        series+=','
+                    series+=self.getStringContentFromXPath(r, '//span[contains (@class, "seriesLabel")]/a['+str(counter)+']')
+                    counter+=1
+                Log(series.strip())
         
 		
         #cleanup synopsis
@@ -597,6 +588,12 @@ class AudiobookAlbum(Agent.Album):
         metadata.posters[1] = Proxy.Media(HTTP.Request(thumb))
         metadata.posters.validate_keys(thumb)
         metadata.rating = float(rating) * 2
+
+        # Add the collection tag
+        metadata.collections.clear()
+        series_list = series.split(",")
+        for sl in series_list:
+            metadata.collections.add(sl)
 
         metadata.title = title
         media.artist = author
