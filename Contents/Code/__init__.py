@@ -160,12 +160,6 @@ class AudiobookArtist(Agent.Artist):
 
         return img[0].get('src')
 
-    def findDateInTitle(self, title):
-        result = re.search(r'(\d+-\d+-\d+)', title)
-        if result is not None:
-            return Datetime.ParseDate(result.group(0)).date()
-        return None
-
     def doSearch(self, url, ctx):
 	
 	  
@@ -260,14 +254,8 @@ class AudiobookAlbum(Agent.Album):
 
         return img[0].get('src')
 
-    def findDateInTitle(self, title):
-        result = re.search(r'(\d+-\d+-\d+)', title)
-        if result is not None:
-            return Datetime.ParseDate(result.group(0)).date()
-        return None
-
     def doSearch(self, url, ctx):
-        """This method implements the web scraping xpath rules"""
+        """This method implements the web scraping xpath rules for the search page"""
         html = HTML.ElementFromURL(url, sleep=REQUEST_DELAY)
         found = []
         subtitle = ''
@@ -285,10 +273,9 @@ class AudiobookAlbum(Agent.Album):
             narrator = self.getStringContentFromXPath(r, 'div/div/div/div/div/div/span/ul/li[contains (@class,"narratorLabel")]/span//a[1]'.format(ctx['NAR_BY']).decode('utf-8'))
             series = self.getStringContentFromXPath(r, 'div/div/div/div/div/div/span/ul/li[contains (@class,"seriesLabel")]/span/a[1]')
 
+
             # store the results
             found.append({'url': murl, 'title': title, 'subtitle': subtitle, 'date': date, 'thumb': thumb, 'author': author, 'narrator': narrator, 'series': series})
-
-            
 
         return found
 
@@ -468,7 +455,10 @@ class AudiobookAlbum(Agent.Album):
         series=''
         genre1=None
         genre2=None
-		
+        subtitle = ''
+
+
+        # there is a json at the bottom of the page with a lot of the information we want
         for r in html.xpath('//script[contains (@type, "application/ld+json")]'):
             page_content = r.text_content()
             page_content = page_content.replace('\n', '')
@@ -504,24 +494,32 @@ class AudiobookAlbum(Agent.Album):
                     studio=json_data['publisher']
                     synopsis=json_data['description']
                 if 'itemListElement' in json_data:
-                    #for key in json_data:
-                    #    Log('{0}:{1}'.format(key, json_data[key]))
+                    # debug
+                    # for key in json_data:
+                    #     Log('{0}:{1}'.format(key, json_data[key]))
+                    # [0] is a tag called 'home', we skip it
                     genre1=json_data['itemListElement'][1]['item']['name']
                     try:
                         genre2=json_data['itemListElement'][2]['item']['name']
                     except:
                         continue
-        
-        for r in html.xpath('//li[contains (@class, "seriesLabel")]'):
-            Log("ACA_____________________________________________________________________")
-            series = ''
-            counter=1
-            for r in html.xpath('//span[contains (@class, "seriesLabel")]/a'):
-                if counter > 1:
-                    series+=','
-                series+=self.getStringContentFromXPath(r, '//span[contains (@class, "seriesLabel")]/a['+str(counter)+']')
-                counter+=1
-            Log(series.strip())
+
+
+        # the series are not included in the mentioned json
+        # we need to get it from the html
+        for r in html.xpath('//*[contains (@class, "seriesLabel")]'):
+            series = self.getStringContentFromXPath(r, 'a[1]')
+            self.Log('seriesLabel matched: %s', series)
+
+
+        # the subtitle is not present in the mentioned json
+        # we need to scrape it from the html
+        for r in html.xpath('//*[contains (@class, "subtitle")]'):
+            # li[contains (@class,"subtitle")]/span
+            # #center-1 > div > div > div > div.bc-col-responsive.bc-col-5 > span > ul > li.bc-list-item.subtitle.bc-spacing-s2.bc-size-medium
+            # subtitle = self.getStringContentFromXPath(r, '')
+            subtitle = r
+            self.Log('subtitle matched: %s', subtitle)
         
 		
         #cleanup synopsis
@@ -548,6 +546,7 @@ class AudiobookAlbum(Agent.Album):
 		
         self.Log('date:        %s', date)
         self.Log('title:       %s', title)
+        self.Log('subtitle:    %s', subtitle)
         self.Log('author:      %s', author)
         self.Log('series:      %s', series)
         self.Log('narrator:    %s', narrator)
@@ -572,6 +571,7 @@ class AudiobookAlbum(Agent.Album):
 		
 		# other metadata
         metadata.title = title
+        metadata.title_sort = subtitle + ' - ' + title if (subtitle != '' ) else title
         metadata.studio = studio
         metadata.summary = synopsis
         metadata.posters[1] = Proxy.Media(HTTP.Request(thumb))
@@ -584,7 +584,6 @@ class AudiobookAlbum(Agent.Album):
         for sl in series_list:
             metadata.collections.add(sl)
 
-        metadata.title = title
         media.artist = author
 		
         self.writeInfo('New data', url, metadata)
