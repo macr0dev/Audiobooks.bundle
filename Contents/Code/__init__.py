@@ -267,25 +267,29 @@ class AudiobookAlbum(Agent.Album):
         return None
 
     def doSearch(self, url, ctx):
+        """This method implements the web scraping xpath rules"""
         html = HTML.ElementFromURL(url, sleep=REQUEST_DELAY)
         found = []
-        self.Log('-----------------------------------------just before new xpath line--------------------')
+        subtitle = ''
+        self.Log('-----------------------------ABOUT TO TRY XPATH--------------------------')
         for r in html.xpath('//ul//li[contains(@class,"productListItem")]'):
+            self.Log('---------------------------------------XPATH SEARCH HIT-----------------------------------------------')
             datetext = self.getStringContentFromXPath(r, 'div/div/div/div/div/div/span/ul/li[contains (@class,"releaseDateLabel")]/span'.decode('utf-8'))
             datetext=re.sub(r'[^0-9\-]', '',datetext)
             date=self.getDateFromString(datetext)
             title = self.getStringContentFromXPath(r, 'div/div/div/div/div/div/span/ul//a[contains (@class,"bc-link")][1]')
+            subtitle = self.getStringContentFromXPath(r, 'div/div/div/div/div/div/span/ul/li[contains (@class,"subtitle")]/span')
             murl = self.getAnchorUrlFromXPath(r, 'div/div/div/div/div/div/span/ul/li/h3//a[1]')
             thumb = self.getImageUrlFromXPath(r, 'div/div/div/div/div/div/div[contains(@class,"responsive-product-square")]/div/a/img')
             author = self.getStringContentFromXPath(r, 'div/div/div/div/div/div/span/ul/li[contains (@class,"authorLabel")]/span/a[1]')
-            series = self.getStringContentFromXPath(r, 'div/div/div/div/div/div/span/ul/li[contains (@class,"seriesLabel")]/span/a[1]')
             narrator = self.getStringContentFromXPath(r, 'div/div/div/div/div/div/span/ul/li[contains (@class,"narratorLabel")]/span//a[1]'.format(ctx['NAR_BY']).decode('utf-8'))
-            self.Log('---------------------------------------XPATH SEARCH HIT-----------------------------------------------')
-            
-            found.append({'url': murl, 'title': title, 'date': date, 'thumb': thumb, 'author': author, 'narrator': narrator, 'series': series})
+            series = self.getStringContentFromXPath(r, 'div/div/div/div/div/div/span/ul/li[contains (@class,"seriesLabel")]/span/a[1]')
 
-        self.Log('-----------------------------------------just after new xpath line--------------------')		
-				
+            # store the results
+            found.append({'url': murl, 'title': title, 'subtitle': subtitle, 'date': date, 'thumb': thumb, 'author': author, 'narrator': narrator, 'series': series})
+
+            
+
         return found
 
     def search(self, results, media, lang, manual):
@@ -386,6 +390,7 @@ class AudiobookAlbum(Agent.Album):
             self.Log('* ID is                 %s', itemId)
 
             title    = f['title']
+            subtitle = f['subtitle']
             thumb    = f['thumb']
             date     = f['date']
             year     = ''
@@ -464,75 +469,59 @@ class AudiobookAlbum(Agent.Album):
         genre1=None
         genre2=None
 		
-        for r in html.xpath('//div[contains (@id, "adbl_page_content")]'):
-            date = self.getDateFromString(self.getStringContentFromXPath(r, '//li[contains (., "{0}")]/span[2]//text()'.format(ctx['REL_DATE_INFO']).decode('utf-8')))
-            title = self.getStringContentFromXPath(r, '//h1[contains (@class, "adbl-prod-h1-title")]/text()')
-            murl = self.getAnchorUrlFromXPath(r, 'div/div/div/div/a[1]')
-            thumb = self.getImageUrlFromXPath(r, 'div/div/div/div/div/img')
-            author = self.getStringContentFromXPath(r, '//li//a[contains (@class,"author-profile-link")][1]')
-            narrator = self.getStringContentFromXPath(r, '//li[contains (., "{0}")]//span[2]'.format(ctx['NAR_BY_INFO'])).strip().decode('utf-8')
-            studio = self.getStringContentFromXPath(r, '//li//a[contains (@id,"PublisherSearchLink")][1]')
-            synopsis = self.getStringContentFromXPath(r, '//div[contains (@class, "disc-summary")]/div[*]').strip()
-            series = self.getStringContentFromXPath(r, '//div[contains (@class, "adbl-series-link")]//a[1]')
-            genre1 = self.getStringContentFromXPath(r,'//div[contains(@class,"adbl-pd-breadcrumb")]/div[2]/a/span/text()')
-            genre2 = self.getStringContentFromXPath(r,'//div[contains(@class,"adbl-pd-breadcrumb")]/div[3]/a/span/text()')
-            self.Log('---------------------------------------XPATH SEARCH HIT-----------------------------------------------')
-		
-        if date is None :
-            #for r in html.xpath('//div[contains (@class,"slot bottomSlot")]/script[contains (@type, "application/ld+json")]'):
-            for r in html.xpath('//script[contains (@type, "application/ld+json")]'):
-                page_content = r.text_content()
-                page_content = page_content.replace('\n', '')
-                #page_content = page_content.replace('\'', '\\\'')
-                #page_content = re.sub(r'\\(?![bfnrtv\'\"\\])', '', page_content)  
-				# Remove any backslashes that aren't escaping a character JSON needs escaped
-                remove_inv_json_esc=re.compile(r'([^\\])(\\(?![bfnrt\'\"\\/]|u[A-Fa-f0-9]{4}))')
-                page_content=remove_inv_json_esc.sub(r'\1\\\2', page_content)
-                self.Log(page_content)
-                json_data=json_decode(page_content)
-                for json_data in json_data:
-                    if 'datePublished' in json_data:
-                        #for key in json_data:
-                        #    Log('{0}:{1}'.format(key, json_data[key]))
-                        date=self.getDateFromString(json_data['datePublished'])
-                        title=json_data['name']
-                        thumb=json_data['image']
-                        rating=json_data['aggregateRating']['ratingValue']
-                        author=''
-                        counter=0
-                        for c in json_data['author'] :
-                            counter+=1
-                            if counter > 1 :  
-                                author+=', '
-                            author+=c['name']
-                        narrator=''
-                        counter=0
-                        for c in json_data['readBy'] :
-                            counter+=1
-                            if counter > 1 :  
-                                narrator+=','
-                            narrator+=c['name']
-                        studio=json_data['publisher']
-                        synopsis=json_data['description']
-                    if 'itemListElement' in json_data:
-                        #for key in json_data:
-                        #    Log('{0}:{1}'.format(key, json_data[key]))
-                        genre1=json_data['itemListElement'][1]['item']['name']
-                        try:
-                            genre2=json_data['itemListElement'][2]['item']['name']
-                        except:
-                            continue
-            
-            for r in html.xpath('//li[contains (@class, "seriesLabel")]'):
-                Log("ACA_____________________________________________________________________")
-                series = ''
-                counter=1
-                for r in html.xpath('//span[contains (@class, "seriesLabel")]/a'):
-                    if counter > 1:
-                        series+=','
-                    series+=self.getStringContentFromXPath(r, '//span[contains (@class, "seriesLabel")]/a['+str(counter)+']')
-                    counter+=1
-                Log(series.strip())
+        for r in html.xpath('//script[contains (@type, "application/ld+json")]'):
+            page_content = r.text_content()
+            page_content = page_content.replace('\n', '')
+            #page_content = page_content.replace('\'', '\\\'')
+            #page_content = re.sub(r'\\(?![bfnrtv\'\"\\])', '', page_content)  
+			# Remove any backslashes that aren't escaping a character JSON needs escaped
+            remove_inv_json_esc=re.compile(r'([^\\])(\\(?![bfnrt\'\"\\/]|u[A-Fa-f0-9]{4}))')
+            page_content=remove_inv_json_esc.sub(r'\1\\\2', page_content)
+            self.Log(page_content)
+            json_data=json_decode(page_content)
+            for json_data in json_data:
+                if 'datePublished' in json_data:
+                    #for key in json_data:
+                    #    Log('{0}:{1}'.format(key, json_data[key]))
+                    date=self.getDateFromString(json_data['datePublished'])
+                    title=json_data['name']
+                    thumb=json_data['image']
+                    rating=json_data['aggregateRating']['ratingValue']
+                    author=''
+                    counter=0
+                    for c in json_data['author'] :
+                        counter+=1
+                        if counter > 1 :  
+                            author+=', '
+                        author+=c['name']
+                    narrator=''
+                    counter=0
+                    for c in json_data['readBy'] :
+                        counter+=1
+                        if counter > 1 :  
+                            narrator+=','
+                        narrator+=c['name']
+                    studio=json_data['publisher']
+                    synopsis=json_data['description']
+                if 'itemListElement' in json_data:
+                    #for key in json_data:
+                    #    Log('{0}:{1}'.format(key, json_data[key]))
+                    genre1=json_data['itemListElement'][1]['item']['name']
+                    try:
+                        genre2=json_data['itemListElement'][2]['item']['name']
+                    except:
+                        continue
+        
+        for r in html.xpath('//li[contains (@class, "seriesLabel")]'):
+            Log("ACA_____________________________________________________________________")
+            series = ''
+            counter=1
+            for r in html.xpath('//span[contains (@class, "seriesLabel")]/a'):
+                if counter > 1:
+                    series+=','
+                series+=self.getStringContentFromXPath(r, '//span[contains (@class, "seriesLabel")]/a['+str(counter)+']')
+                counter+=1
+            Log(series.strip())
         
 		
         #cleanup synopsis
