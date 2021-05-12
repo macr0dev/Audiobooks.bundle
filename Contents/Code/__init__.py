@@ -449,8 +449,9 @@ class AudiobookAlbum(Agent.Album):
         self.Log('Final result:')
         i = 1
         for r in info:
+            description = '\"%s\" by %s [%s]' % (r['title'], r['artist'], r['year'])
             self.Log('    [%s]    %s. %s (%s) %s {%s} [%s]', r['score'], i, r['title'], r['year'], r['artist'], r['id'], r['thumb'])
-            results.Append(MetadataSearchResult(id = r['id'], name  = r['title'], score = r['score'], thumb = r['thumb'], lang = lang))
+            results.Append(MetadataSearchResult(id = r['id'], name  = description, score = r['score'], thumb = r['thumb'], lang = lang))
 
             # If there are more than one result, and this one has a score that is >= GOOD SCORE, then ignore the rest of the results
             if not manual and len(info) > 1 and r['score'] >= GOOD_SCORE:
