@@ -1,3 +1,11 @@
+# NO LONGER IN DEVELOPMENT
+
+This was a fun little project that I started many years ago.  I never really expected it to get as big as it did, and many people have splintered this off into even larger projects than I imagined would ever be.  Please consider visiting one of them for your future needs.  I won't be updating this anymore, and haven't for some time.  But I will leave it here for anyone to borrow/steal from.  Thanks!
+
+
+
+
+
 # Audiobooks (Audible) metadata agent
 
 Metadata agent for Audiobooks stored in a music library. **Now available in the Unsupported App Store!**
