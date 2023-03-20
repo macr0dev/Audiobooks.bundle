@@ -20,7 +20,7 @@ def json_decode(output):
 
 
 # URLs
-VERSION_NO = '1.2020.04.15.1'
+VERSION_NO = '1.2019.07.29.1'
 
 REQUEST_DELAY = 10       # Delay used when requesting HTML, may be good to have to prevent being banned from the site
 
@@ -35,16 +35,16 @@ intl_sites={
     'fr' : { 'url': 'www.audible.fr'   , 'urltitle' : u'title='   , 'rel_date' : u'Date de publication'  , 'nar_by' : u'Narrateur(s)'  , 'nar_by2': u'Lu par'},
     'de' : { 'url': 'www.audible.de'   , 'urltitle' : u'title='   , 'rel_date' : u'Erscheinungsdatum'    , 'nar_by' : u'Gesprochen von', 'rel_date2': u'Veröffentlicht'},
     'it' : { 'url': 'www.audible.it'   , 'urltitle' : u'title='   , 'rel_date' : u'Data di Pubblicazione', 'nar_by' : u'Narratore'     },
+    #'jp' : { 'url': 'www.audible.co.jp', 'rel_date' : u'N/A', 'nar_by' : u'ナレーター'     }, # untested
     }
 
 sites_langs={
-    'www.audible.com' : { 'lang' : 'en'     , 'url': 'www.audible.com'  },
-    'www.audible.ca' : { 'lang' : 'en'      , 'url': 'www.audible.ca'   },
-    'www.audible.co.uk' : { 'lang' : 'en'   , 'url': 'www.audible.co.uk'},
-    'www.audible.com.au' : { 'lang' : 'en'  , 'url': 'www.audible.com.au'},
-    'www.audible.fr' : { 'lang' : 'fr'      , 'url': 'www.audible.fr'   },
-    'www.audible.de' : { 'lang' : 'de'      , 'url': 'www.audible.de'   },
-    'www.audible.it' : { 'lang' : 'it'      , 'url': 'www.audible.it'   },
+    'www.audible.com' : { 'lang' : 'en' },	
+    'www.audible.co.uk' : { 'lang' : 'en' },	
+    'www.audible.com.au' : { 'lang' : 'en' },	
+    'www.audible.fr' : { 'lang' : 'fr' },	
+    'www.audible.de' : { 'lang' : 'de' },	
+    'www.audible.it' : { 'lang' : 'it' },	
     }
 
 def SetupUrls(sitetype, base, lang='en'):
@@ -57,7 +57,7 @@ def SetupUrls(sitetype, base, lang='en'):
         Log('Pulling language from sites array')
         lang=sites_langs[base]['lang']
         if lang in intl_sites :
-          base=sites_langs[base]['url']
+          base=intl_sites[lang]['url']
           urlsearchtitle=intl_sites[lang]['urltitle']
           ctx['REL_DATE']=intl_sites[lang]['rel_date']
           ctx['NAR_BY'  ]=intl_sites[lang]['nar_by']
@@ -459,7 +459,7 @@ class AudiobookAlbum(Agent.Album):
             i += 1
 
     def update(self, metadata, media, lang, force=False):
-        self.Log('***** UPDATING "%s" ID: %s - AUDIBLE v.%s *****', media.title, metadata.id, VERSION_NO)
+        self.Log('***** UPDATING***** UPDATING "%s" ID: %s - AUDIBLE v.%s *****', media.title, metadata.id, VERSION_NO)
         ctx=SetupUrls(Prefs['sitetype'], Prefs['site'], lang)
 		  
         # Make url
@@ -535,8 +535,16 @@ class AudiobookAlbum(Agent.Album):
                         except:
                             continue
             
-            for r in html.xpath('//li[contains (@class, "seriesLabel")]'):
-                series = self.getStringContentFromXPath(r, '//li[contains (@class, "seriesLabel")]//a[1]')
+            # not sure why this errors - syntax seem OK in Xpath tester
+            #series = html.xpath('string-join(//span[contains (@class, "seriesLabel")]//a, ","')
+            series = ''
+            counter=1
+            for r in html.xpath('//span[contains (@class, "seriesLabel")]/a'):
+                if counter > 1:
+                    series+=','
+                
+                series+=self.getStringContentFromXPath(r, '//span[contains (@class, "seriesLabel")]/a['+str(counter)+']')
+                counter+=1
                 #Log(series.strip())
         
 		
@@ -579,7 +587,8 @@ class AudiobookAlbum(Agent.Album):
 
 		# Add the genres
         metadata.genres.clear()
-        metadata.genres.add(series)
+        # series goes into collection instead
+        #metadata.genres.add(series)
         narrators_list = narrator.split(",")
         for narrators in narrators_list:
             metadata.genres.add(narrators)
@@ -593,6 +602,12 @@ class AudiobookAlbum(Agent.Album):
         metadata.posters[1] = Proxy.Media(HTTP.Request(thumb))
         metadata.posters.validate_keys(thumb)
         metadata.rating = float(rating) * 2
+
+        # Add the collection tag
+        metadata.collections.clear()
+        series_list = series.split(",")
+        for sl in series_list:
+            metadata.collections.add(sl)        
 
         metadata.title = title
         media.artist = author
